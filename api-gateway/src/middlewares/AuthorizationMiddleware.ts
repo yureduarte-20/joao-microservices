@@ -14,8 +14,8 @@ export class AuthorizationMiddleware {
                     if (data.responsibilities.some(resp =>
                         path.allowedRoles.includes(resp.role)
                         && path.service.includes(resp.service)
-                        &&  path.method.includes(req.method)
-                        ))
+                        && path.method.includes(req.method)
+                    ))
                         return next();
                     return res.status(403).json({ error: { message: 'Não autorizado' } })
                 }).catch(err => { console.error(err); res.status(500).json({ error: { message: 'Erro ao conseguir dados do usuário' } }) })

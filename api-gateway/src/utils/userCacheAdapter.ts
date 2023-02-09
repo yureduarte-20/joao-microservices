@@ -4,7 +4,14 @@ import api_user_service from "./api"
 
 
 export class UserCacheAdapter {
-    public async getUserResponsability(userId : string) : Promise<{responsibilities:Responsability[]}> {
-        return getUserResponsibilities(userId)
+    private static usersResponsabities: Map<string, { responsibilities: Responsability[] }> = new Map()
+    public async getUserResponsability(userId: string): Promise<{ responsibilities: Responsability[] }> {
+        if (UserCacheAdapter.usersResponsabities.has(userId)) {
+            return Promise.resolve(UserCacheAdapter.usersResponsabities.get(userId) as { responsibilities: Responsability[] })
+        }
+        let data = await getUserResponsibilities(userId)
+        UserCacheAdapter.usersResponsabities.set(userId, data)
+        return Promise.resolve(data)
+
     }
 }

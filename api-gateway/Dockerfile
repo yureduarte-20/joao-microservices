@@ -9,4 +9,5 @@ RUN npx tsc -p .
 ENV HOST=0.0.0.0 PORT=3000
 EXPOSE ${PORT}
 RUN echo ${PORT}
-CMD [ "node", "dist/index.js" ]
+#CMD [ "node", "dist/index.js" ]
+CMD ["npm", "run", "dev"]
