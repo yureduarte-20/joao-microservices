@@ -157,7 +157,7 @@ export class UserController {
     await this.userRepository.deleteById(id);
   }
 
-  @post('/users/check-credentials')
+  @post('/login')
   @response(200, {
     description: 'User model instance',
     content: {'application/json': {schema: getModelSchemaRef(User)}},
