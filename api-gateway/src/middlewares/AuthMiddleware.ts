@@ -3,8 +3,8 @@ import jwt from "jsonwebtoken"
 import { UserData } from "../types";
 const secret = process.env.JWT_SECRET as string;
 
-export const generateToken = ({ email, id, name }: UserData) => {
-    return jwt.sign({ email, id, name }, secret, { expiresIn: '2h' });
+export const generateToken = ({ email, id, name, responsibilities }: UserData) => {
+    return jwt.sign({ email, id, name, responsibilities }, secret, { expiresIn: '2h' });
 };
 export const verify = (req: any, res: Response, next: NextFunction) => {
     var token: string = req.headers["Authorization"] ?? req.headers["authorization"] as string;
@@ -21,7 +21,7 @@ export const verify = (req: any, res: Response, next: NextFunction) => {
 
         // se tudo estiver ok, salva no request para uso posterior
         req.userData = decoded;
-        console.log(decoded)
+        
         next();
     });
 };

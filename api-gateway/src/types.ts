@@ -2,6 +2,7 @@ export type UserData = {
     id: string,
     email: string,
     name: string
+    responsibilities: Responsability[]
 }
 export enum Roles {
     ADMIN = 'ADMIN',
