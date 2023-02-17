@@ -1,0 +1,90 @@
+import { belongsTo, Entity, model, property } from '@loopback/repository';
+import { SubmissionStatus } from '../keys';
+
+export interface ITestCase {
+  inputs?: string[];
+  outputs: string;
+  validationOutputRegex?: string
+}
+
+@model({
+
+})
+export class Submission extends Entity {
+  @property({
+    type: 'string',
+    id: true,
+    generated: true,
+    postgresql: {
+      columnName: 'id',
+      dataType: 'INTEGER',
+    },
+  })
+  id?: string;
+  @property({ required: true, type: 'string' })
+  userURI: string;
+
+
+  @property({
+    type: 'string',
+    default: SubmissionStatus.PENDING
+  })
+  status: SubmissionStatus;
+
+  @property({
+    type: 'string',
+    required: true
+  })
+  blocksXml: string
+  @property({
+    type: 'string',
+  })
+  error?: string
+  @property({
+    type: 'date',
+    defaultFn: 'now',
+    postgresql: {
+      columnName: 'created_at',
+    }
+  })
+  createdAt: Date;
+  @property.array(Object, { hidden: true })
+  results?: SubmissionStatus[]
+  @property({ type: 'number', default: 0 })
+  successfulRate: number
+
+  @property({
+    type: 'string',
+  })
+  problemTitle: string
+  @property.array(Object, {
+    jsonSchema: {
+      properties: {
+        inputs: {
+          type: 'string'
+        },
+        outputs: {
+          type: 'string'
+        },
+        validationOutputRegex: {
+          type: 'string'
+        }
+      },
+      required: ['outputs']
+    },
+    hidden:true
+  })
+  testCases: ITestCase[]
+
+  @property({ type: 'string', required: true })
+  problemId: string
+  constructor(data?: Partial<Submission>) {
+    super(data);
+  }
+}
+
+export interface SubmissionRelations {
+
+}
+
+export type SubmissionWithRelations = Submission & SubmissionRelations;
