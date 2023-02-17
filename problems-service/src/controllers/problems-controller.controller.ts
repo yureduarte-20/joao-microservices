@@ -75,44 +75,4 @@ export class ProblemsControllerController {
   ): Promise<Problem> {
     return this.problemRepository.findById(id, filter);
   }
-  @post('/problems/submission')
-  @response(200, {
-    description: 'Problem model instance',
-    content: {
-      'application/json': {
-        schema: getModelSchemaRef(Problem, { includeRelations: true }),
-      },
-    },
-  })
-  async createSubmission(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: { type: 'object' },
-        },
-      },
-    })
-    submission: any,
-  ) {
-    const p = await this.problemRepository.findById(submission.problemId, { fields: { title: true, testCases: true } })
-    submission = { problemTitle: p.title, testCases: p.testCases, ...submission }
-    try {
-      const { data } = await submission_api.post('/submissions', submission)
-      return data
-    } catch (e) {
-      let error: AxiosError = e
-      if (error.response) {
-        if (error.response.status == 422) {
-          const { error: { message, details } }: any = error.response.data
-          let httpError = new HttpErrors.UnprocessableEntity(message)
-          httpError.details = details
-          return Promise.reject(httpError)
-        }
-      }
-      if (error.request) {
-        return Promise.reject(new HttpErrors.InternalServerError())
-      }
-      return Promise.reject(new HttpErrors.InternalServerError())
-    }
-  }
 }

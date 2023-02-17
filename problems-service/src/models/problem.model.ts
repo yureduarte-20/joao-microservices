@@ -1,4 +1,5 @@
 import { Entity, hasMany, model, property } from '@loopback/repository';
+import {Submission} from './submission.model';
 
 export interface ITestCase {
   inputs?: string[];
@@ -101,6 +102,9 @@ export class Problem extends Entity {
 
   })
   demonstrations: IDemonstrations[]
+
+  @hasMany(() => Submission)
+  submissions: Submission[];
 
   constructor(data?: Partial<Problem>) {
     super(data);
