@@ -6,6 +6,7 @@ export const authServiceProxy = httpProxy(process.env.USER_SERVICE_API_URL as st
     userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
         let resData = Buffer.from(proxyResData).toString('utf-8')
         let obj = JSON.parse(resData)
+        console.log(resData)
         if (!proxyRes.statusCode) {
             userRes.status(500)
             return { error: { message: 'Error' } }
@@ -15,7 +16,11 @@ export const authServiceProxy = httpProxy(process.env.USER_SERVICE_API_URL as st
             userRes.status(proxyRes.statusCode);
             return { token }
         }
-        userRes.status(proxyRes.statusCode);
+        if(proxyRes.statusCode >= 300 && proxyRes.statusCode < 600 ){
+            userRes.status(proxyRes.statusCode).json(resData);
+            return { resData }
+        }
+
         return proxyResData
     },
     proxyErrorHandler:ServersErrors

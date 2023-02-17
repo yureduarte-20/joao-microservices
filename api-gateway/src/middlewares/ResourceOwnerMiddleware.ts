@@ -3,7 +3,7 @@ import { PATHS } from "../autorizationPathSpec";
 import { HTPP_METHODS, UserData } from "../types";
 
 export default class ResourceOwnerMiddleware {
-    private static ALL_PATHS = PATHS
+    private static readonly ALL_PATHS = PATHS
     public static verifyRoutesParamsId(req: Request, response: Response, next: NextFunction) {
         let find = false;
         for (const path of ResourceOwnerMiddleware.ALL_PATHS) {
@@ -18,7 +18,7 @@ export default class ResourceOwnerMiddleware {
                 console.log(param,)
                 if (!param) {
                     response.status(400)
-                    return response.json({ error:{ message:'Escopo inválido' } })
+                    return response.json({ error: { message: 'Escopo inválido' } })
                 }
                 const _req: Request & { userData: UserData } = req as any;
                 if (param !== _req.userData.id) {
