@@ -32,5 +32,13 @@ export const PATHS: PathSpec[] = [
         service: Services.USER_SERVICE,
         onlyOnwer:false,
         hasParamId:false
-    }
+    },
+    {
+        allowedRoles: [Roles.ADMIN, Roles.ADVISOR, Roles.STUDENT],
+        pathName: /^\/problems\/*./,
+        method: [HTPP_METHODS.GET],
+        service: Services.USER_SERVICE,
+        onlyOnwer:false,
+        hasParamId:false
+    },
 ]

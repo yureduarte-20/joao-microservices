@@ -7,6 +7,7 @@ const app = Express();
 
 app.use(Express.json())
 app.use(router)
+console.log(process.env.USER_SERVICE_API_URL)
 app.listen(PORT, () => {
     console.log('API gateway running in port:' + PORT)
 })
