@@ -11,8 +11,8 @@ const router = Router();
 router.post('/login', authServiceProxy)
 
 //rotas de usuários
-router.get('/users', verify, AuthorizationMiddleware.handle, userServiceProxy)
-router.get('/users/:userId', verify, AuthorizationMiddleware.handle, userServiceProxy)
+router.get('/users', verify, userServiceProxy)
+router.get('/users/:userId', verify, userServiceProxy)
 router.patch('/users/:userId', verify, AuthorizationMiddleware.handle, ResourceOwnerMiddleware.verifyRoutesParamsId, userServiceByIdProxy)
 router.put('/users/:userId', verify, AuthorizationMiddleware.handle, ResourceOwnerMiddleware.verifyRoutesParamsId, userServiceByIdProxy)
 router.delete('/users/:userId', verify, AuthorizationMiddleware.handle, ResourceOwnerMiddleware.verifyRoutesParamsId, userServiceByIdProxy)

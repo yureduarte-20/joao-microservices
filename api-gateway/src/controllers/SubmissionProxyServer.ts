@@ -16,7 +16,12 @@ export const submissionServiceProxy = httpProxy(process.env.PROBLEM_SERVICE_URL 
     proxyReqPathResolver(req) {
         let url = new URL(process.env.PROBLEM_SERVICE_URL + req.url)
         if ([HTTP_METHODS.GET].includes(req.method as HTTP_METHODS)) {
+            console.log(req.path)
             if (req.path == '/submissions') {
+                const { userData }: Request & { userData: UserData } = req as any
+                return req.path + `/${userData.id}` + url.search
+            }
+            if(req.path.match(/\/submissions\/([0-f]+)/)){
                 const { userData }: Request & { userData: UserData } = req as any
                 return req.path + `/${userData.id}` + url.search
             }
