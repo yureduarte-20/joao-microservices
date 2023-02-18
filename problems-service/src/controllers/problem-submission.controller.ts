@@ -1,3 +1,4 @@
+import { inject } from '@loopback/core';
 import {
   Count,
   CountSchema,
@@ -16,14 +17,19 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
-import { SubmissionStatus } from '../keys';
+import JudgeAdapter from '../adapters/JudgeConector';
+import { JudgeConectorAdapterBindings, SubmissionStatus } from '../keys';
 import {
   Problem,
   Submission,
 } from '../models';
 import { ProblemRepository, SubmissionRepository } from '../repositories';
+import { javascriptPrefix } from '../utils/javascriptScript';
+import xmlToCode from '../utils/xmlToCode';
 
 export class ProblemSubmissionController {
+  @inject(JudgeConectorAdapterBindings.JUDGE_ADAPTER)
+  private jud: JudgeAdapter
   constructor(
     @repository(ProblemRepository) protected problemRepository: ProblemRepository,
     @repository(SubmissionRepository) protected submissionRepository: SubmissionRepository,
@@ -53,7 +59,7 @@ export class ProblemSubmissionController {
         and: [{ id }, { or: [{ userURI: userId }, { userURI: `/users/${userId}` }] }]
       }
     })
-    if (!sub) return Promise.reject(new HttpErrors.NotFound('Submissão não encontrada.'))
+    if (!sub || (Array.isArray(sub) && sub.length <= 0)) return Promise.reject(new HttpErrors.NotFound('Submissão não encontrada.'))
     return sub
   }
 
@@ -99,7 +105,10 @@ export class ProblemSubmissionController {
     }) submission: Omit<Submission, 'id'>,
   ): Promise<Submission> {
     submission.status = SubmissionStatus.PENDING
-    await this.problemRepository.findById(id)
-    return this.problemRepository.submissions(id).create(submission);
+    const problem = await this.problemRepository.findById(id, { fields:{ testCases:true, id:true } })
+    console.log(problem.testCases)
+    const submissionData = await this.problemRepository.submissions(id).create(submission);
+    this.jud.sendSubmissionToEvaluate({ code: javascriptPrefix + submission.blocksXml, problem:{ testCases: problem.testCases }, submission: submissionData })
+    return submissionData
   }
 }

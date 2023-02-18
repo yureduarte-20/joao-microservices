@@ -45,6 +45,7 @@ export class Problem extends Entity {
   })
   description?: string;
   @property.array(Object, {
+    hidden: true,
     jsonSchema: {
       properties: {
         inputs: {

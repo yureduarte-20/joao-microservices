@@ -50,7 +50,6 @@ export class PingController {
   @response(200, PING_RESPONSE)
   ping(): object {
     // Reply with a greeting, the current time, the url, and request headers
-    this.jud.sendSubmissionToEvaluate({ code:javascriptPrefix.concat("for(let i=0; i< 999999999; i++){window.alert('caata')}"), problem:{ id:'1', testCases:[{ outputs:'olá mundo' }] } })
     return {
       greeting: 'Hello from LoopBack',
       date: new Date(),

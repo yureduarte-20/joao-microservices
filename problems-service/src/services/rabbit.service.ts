@@ -14,7 +14,7 @@ export default class RabbitService {
            catch (err) { reject(err) }
        });
     }
-    public async sendToQueue(queue : string, message:string) {
+    public async sendToQueue(queue : string, message:any) {
         this.connect()
             .then(channel => this.createQueue(channel, queue))
             .then((channel : amqplib.Channel) => channel.sendToQueue(queue, Buffer.from(JSON.stringify(message))))
