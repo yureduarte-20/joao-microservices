@@ -1,10 +1,10 @@
 import { consume, sendToQueue } from './utils/queue'
 import NodeJSService from './utils/nodejs'
-import { writeFileSync,mkdirSync, unlink } from 'fs'
+import { writeFileSync, mkdirSync, unlink } from 'fs'
 const nodejsService = new NodeJSService()
 function createTmpScript(basePath: string, fileName: string, data: string) {
     mkdirSync(basePath, { recursive: true })
-    writeFileSync(`${basePath}/${fileName}`, data, )
+    writeFileSync(`${basePath}/${fileName}`, data,)
 }
 
 
@@ -13,21 +13,30 @@ function deleteTmpScript(basePath: string, fileName: string) {
         if (err) console.log(`Falhou em deletar ${fileName}`)
     })
 }
-consume('submission_to_be_evaluate', async (data) => {
+consume('submission:execute', async (data) => {
     if (data) {
-        const json = JSON.parse(JSON.parse(data.content.toString()))
+        // console.log( JSON.parse(Buffer.from(data.content).toString('utf-8')))
+        const json = JSON.parse(Buffer.from(data.content).toString('utf-8'))
         let basePath = __dirname + '/tmp'
-        let fileName =  json.submission.id + '.js'
+        let fileName = json.submission.id + '.js'
+
+        const executions: Promise<void>[] = []
+        const testCasesOutputs: any[] = []
         createTmpScript(basePath, fileName, json.code)
-        nodejsService.execute({ basePath, fileName }, json.problem.testCases.map((item: any) => item.outputs))
-        .then(data =>{
-            sendToQueue('submission_evaluated', { problem:json["problem"], submission:json.submission, data })
-        })
-        .catch((e : Error) =>{
-            sendToQueue('submission_evaluated', { problem:json.problem, submission:json.submission, error:{ message:e.message, stack: e.stack, name:e.name } })
-        }).finally(() =>{
-          deleteTmpScript(basePath, fileName)  
-        })
+        for (const testCase of json.problem.testCases) {
+            const promise = nodejsService.execute({ basePath, fileName }, testCase?.inputs)
+                .then(data => {
+                    testCasesOutputs.push({ success: true, outputs: JSON.parse(data), testCase })
+                })
+                .catch((e: Error) => {
+                    testCasesOutputs.push({ success: false, testCase, error: { message: e.message, stack: e.stack, name: e.name } })
+                }).finally(() => {
+                    deleteTmpScript(basePath, fileName)
+                })
+            executions.push(promise)
+        }
+        await Promise.allSettled(executions)
+        sendToQueue('submission:executed', { submission: json.submission, results: testCasesOutputs })
 
     }
 })
