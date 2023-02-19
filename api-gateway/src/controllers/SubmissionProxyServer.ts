@@ -3,7 +3,7 @@ import httpProxy from 'express-http-proxy'
 import ServersErrors from '../handlers/ServersErrors'
 import { HTPP_METHODS as HTTP_METHODS, UserData } from '../types'
 
-export const submissionServiceProxy = httpProxy(process.env.PROBLEM_SERVICE_URL as string, {
+export const submissionServiceProxy = httpProxy(process.env.PROBLEMS_SERVICE_URL as string, {
     proxyReqBodyDecorator(bodyContent, srcReq) {
         if ([HTTP_METHODS.POST].includes(srcReq.method as HTTP_METHODS)) {
             const { userData }: Request & { userData: UserData } = srcReq as any
@@ -14,7 +14,7 @@ export const submissionServiceProxy = httpProxy(process.env.PROBLEM_SERVICE_URL 
         return bodyContent
     },
     proxyReqPathResolver(req) {
-        let url = new URL(process.env.PROBLEM_SERVICE_URL + req.url)
+        let url = new URL(process.env.PROBLEMS_SERVICE_URL + req.url)
         if ([HTTP_METHODS.GET].includes(req.method as HTTP_METHODS)) {
             console.log(req.path)
             if (req.path == '/submissions') {
