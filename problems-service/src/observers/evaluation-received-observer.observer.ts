@@ -4,8 +4,9 @@ import {
   lifeCycleObserver, // The decorator
   LifeCycleObserver, // The interface
 } from '@loopback/core';
+import EvaluatorAdapter from '../adapters/EvaluatorAdapter';
 import JudgeAdapter from '../adapters/JudgeConector';
-import { JudgeConectorAdapterBindings } from '../keys';
+import { EvaluatorAdapterBinding, JudgeConectorAdapterBindings } from '../keys';
 
 /**
  * This class will be bound to the application as a `LifeCycleObserver` during
@@ -15,6 +16,8 @@ import { JudgeConectorAdapterBindings } from '../keys';
 export class EvaluationReceivedObserverObserver implements LifeCycleObserver {
   @inject(JudgeConectorAdapterBindings.JUDGE_ADAPTER)
   private judge: JudgeAdapter
+  @inject(EvaluatorAdapterBinding.EVALUATOR_ADAPTER)
+  private evaluator: EvaluatorAdapter
   /*
   constructor(
     @inject(CoreBindings.APPLICATION_INSTANCE) private app: Application,
@@ -34,7 +37,7 @@ export class EvaluationReceivedObserverObserver implements LifeCycleObserver {
    */
   async start(): Promise<void> {
     // Add your logic for start
-    this.judge.receive()
+    this.judge.onReceive((sub) => this.evaluator.handleReceiveExecution(sub))
   }
 
   /**

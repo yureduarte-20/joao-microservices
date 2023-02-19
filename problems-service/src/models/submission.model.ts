@@ -1,6 +1,6 @@
 import { belongsTo, Entity, model, property } from '@loopback/repository';
 import { SubmissionStatus } from '../keys';
-import {Problem} from './problem.model';
+import { Problem } from './problem.model';
 
 @model({
   settings: {
@@ -41,11 +41,11 @@ export class Submission extends Entity {
     }
   })
   createdAt: Date;
-  @property.array(Object, {hidden: true})
-  results?: SubmissionStatus[]
-  @property({type: 'number', default: 0})
+  @property.array(Object, { hidden: true })
+  results?: string[]
+  @property({ type: 'number', default: 0 })
   successfulRate: number;
-  @property({type: 'string', required: true})
+  @property({ type: 'string', required: true })
   userURI: string;
 
   @belongsTo(() => Problem)

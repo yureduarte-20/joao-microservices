@@ -8,7 +8,7 @@ export default class RabbitService {
     private async createQueue(channel:amqplib.Channel, queue : string) :Promise<amqplib.Channel> {
        return new Promise<amqplib.Channel>((resolve, reject) => {
            try {
-               channel.assertQueue(queue, { durable: true });
+               channel.assertQueue(queue, { durable: true,  autoDelete:true  });
                resolve(channel);
            }
            catch (err) { reject(err) }
@@ -23,7 +23,7 @@ export default class RabbitService {
     public async consume(queue : string, callback : (msg: amqplib.ConsumeMessage | null) => void) {
         this.connect()
             .then(channel => this.createQueue(channel, queue))
-            .then(channel => channel.consume(queue, callback, { noAck: true }))
+            .then(channel => channel.consume(queue, callback, { noAck:true }))
             .catch(err => console.log(err));
     }
 }
