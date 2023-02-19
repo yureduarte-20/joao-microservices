@@ -10,7 +10,7 @@ import {ServiceMixin} from '@loopback/service-proxy';
 import path from 'path';
 import {MySequence} from './sequence';
 import { EvaluatorAdapterBinding, JudgeConectorAdapterBindings as JudgeConnectorAdapterBindings, RabbitServiceBindings } from './keys';
-import JudgeAdapter from './adapters/JudgeConector';
+import QueueListenerAdapter from './adapters/QueueListenerAdapter';
 import RabbitService from './services/rabbit.service';
 import EvaluatorAdapter from './adapters/EvaluatorAdapter';
 
@@ -44,7 +44,7 @@ export class ProblemsServiceApplication extends BootMixin(
         nested: true,
       },
     };
-    this.bind(JudgeConnectorAdapterBindings.JUDGE_ADAPTER).toClass(JudgeAdapter)
+    this.bind(JudgeConnectorAdapterBindings.JUDGE_ADAPTER).toClass(QueueListenerAdapter)
     this.bind(RabbitServiceBindings.RABBIT_SERVICE).toClass(RabbitService)
     this.bind(EvaluatorAdapterBinding.EVALUATOR_ADAPTER).toClass(EvaluatorAdapter)
   }

@@ -6,7 +6,7 @@ import {
   response,
   ResponseObject,
 } from '@loopback/rest';
-import JudgeAdapter from '../adapters/JudgeConector';
+import QueueListenerAdapter from '../adapters/QueueListenerAdapter';
 import { JudgeConectorAdapterBindings } from '../keys';
 import { javascriptPrefix } from '../utils/javascriptScript';
 
@@ -42,7 +42,7 @@ const PING_RESPONSE: ResponseObject = {
  */
 export class PingController {
   @inject(JudgeConectorAdapterBindings.JUDGE_ADAPTER)
-  private jud : JudgeAdapter
+  private jud : QueueListenerAdapter
   constructor(@inject(RestBindings.Http.REQUEST) private req: Request) {}
 
   // Map to `GET /ping`

@@ -1,6 +1,6 @@
 import { BindingKey } from "@loopback/context";
 import EvaluatorAdapter from "./adapters/EvaluatorAdapter";
-import JudgeAdapter from "./adapters/JudgeConector";
+import QueueListenerAdapter from "./adapters/QueueListenerAdapter";
 import RabbitService from "./services/rabbit.service";
 
 export const enum SubmissionStatus {
@@ -14,7 +14,7 @@ export const enum SubmissionStatus {
 }
 
 export namespace JudgeConectorAdapterBindings {
-    export const JUDGE_ADAPTER = BindingKey.create<JudgeAdapter>('adapters.judge')
+    export const JUDGE_ADAPTER = BindingKey.create<QueueListenerAdapter>('adapters.judge')
 }
 export namespace RabbitServiceBindings {
     export const RABBIT_SERVICE = BindingKey.create<RabbitService>('services.rabbitmq')

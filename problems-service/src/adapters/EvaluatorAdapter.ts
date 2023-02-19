@@ -1,10 +1,10 @@
 import { inject } from "@loopback/core";
 import { repository } from "@loopback/repository";
 import { SubmissionStatus } from "../keys";
-import { ITestCase } from "../models";
+import { ITestCase, Submission } from "../models";
 import { SubmissionRepository } from "../repositories";
 import { TimeOutError } from "../types";
-import { ISubmissionExecutedMassage } from "./JudgeConector";
+import { ISubmissionExecutedMassage } from "./QueueListenerAdapter";
 
 export default class EvaluatorAdapter {
     @repository(SubmissionRepository)
@@ -13,8 +13,15 @@ export default class EvaluatorAdapter {
     ) {
 
     }
+    private async allowedToChange(submissionId: typeof Submission.prototype.id) : Promise<boolean> {
+        const submission = await this.submissionRepository.findById(submissionId, { fields: { status: true } })
+        return submission.status !== SubmissionStatus.PENDING
+    }
     public async handleReceiveExecution(executionResult: ISubmissionExecutedMassage) {
         const resultsFails = executionResult.results.find(v => (v.error || !v.success))
+        if (!(await this.allowedToChange(executionResult.submission.id)))
+            return
+
         if (resultsFails) {
             return await this.submissionRepository.updateById(executionResult.submission.id, {
                 status: resultsFails.error?.name == TimeOutError.name ?
@@ -22,6 +29,7 @@ export default class EvaluatorAdapter {
                 error: JSON.stringify(resultsFails.error)
             })
         }
+        
         if (executionResult.results.every(v => v.success && v.outputs?.output_as_string === v.testCase.outputs)) {
             return await this.submissionRepository.updateById(executionResult.submission.id, { status: SubmissionStatus.ACCEPTED, successfulRate: 1 })
         }

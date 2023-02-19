@@ -17,7 +17,7 @@ import {
   post,
   requestBody,
 } from '@loopback/rest';
-import JudgeAdapter from '../adapters/JudgeConector';
+import QueueListenerAdapter from '../adapters/QueueListenerAdapter';
 import { JudgeConectorAdapterBindings, SubmissionStatus } from '../keys';
 import {
   Problem,
@@ -29,7 +29,7 @@ import xmlToCode from '../utils/xmlToCode';
 
 export class ProblemSubmissionController {
   @inject(JudgeConectorAdapterBindings.JUDGE_ADAPTER)
-  private jud: JudgeAdapter
+  private jud: QueueListenerAdapter
   constructor(
     @repository(ProblemRepository) protected problemRepository: ProblemRepository,
     @repository(SubmissionRepository) protected submissionRepository: SubmissionRepository,

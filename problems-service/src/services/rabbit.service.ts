@@ -14,16 +14,16 @@ export default class RabbitService {
            catch (err) { reject(err) }
        });
     }
-    public async sendToQueue(queue : string, message:any) {
+    public async sendToQueue(queue : string, message:any, error? : (err : Error) => void) {
         this.connect()
             .then(channel => this.createQueue(channel, queue))
             .then((channel : amqplib.Channel) => channel.sendToQueue(queue, Buffer.from(JSON.stringify(message))))
-            .catch(err => console.log(err))
+            .catch(error)
     }
-    public async consume(queue : string, callback : (msg: amqplib.ConsumeMessage | null) => void) {
+    public async consume(queue : string, callback : (msg: amqplib.ConsumeMessage | null) => void, error? : (err : Error) => void) {
         this.connect()
             .then(channel => this.createQueue(channel, queue))
-            .then(channel => channel.consume(queue, callback, { noAck:true }))
-            .catch(err => console.log(err));
+            .then(channel => channel.consume(queue, callback, { noAck:true,  }))
+            .catch(error);
     }
 }

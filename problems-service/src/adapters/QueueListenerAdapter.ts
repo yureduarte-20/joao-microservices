@@ -24,7 +24,7 @@ export interface ISubmissionExecutedMassage {
     ],
 }
 
-export default class JudgeAdapter {
+export default class QueueListenerAdapter {
     @inject(RabbitServiceBindings.RABBIT_SERVICE)
     private rabbitService: RabbitService
     public sendSubmissionToEvaluate(data: { code: string, problem: Partial<Problem>, submission: Partial<Submission> }): void {
@@ -37,6 +37,18 @@ export default class JudgeAdapter {
                 const data: ISubmissionExecutedMassage = JSON.parse(message.content.toString())
                 cb(data)
             }
+        })
+    }
+    public async sendDoubt({ problemId, userURI }: { problemId: string, userURI: string }): Promise<any> {
+        return new Promise<any>((res, rej) => {
+            this.rabbitService.sendToQueue('doubt:create', { problemURI: `/problems/${problemId}`, userURI }, rej)
+            this.rabbitService.consume('doubt:created', (message) => {
+                let data = { problemId, userURI }
+                if (message) {
+                    data = JSON.parse(message.content.toString())
+                }
+                res(data)
+            }, rej)
         })
     }
 }

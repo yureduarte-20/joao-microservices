@@ -5,7 +5,7 @@ import {
   LifeCycleObserver, // The interface
 } from '@loopback/core';
 import EvaluatorAdapter from '../adapters/EvaluatorAdapter';
-import JudgeAdapter from '../adapters/JudgeConector';
+import QueueListenerAdapter from '../adapters/QueueListenerAdapter';
 import { EvaluatorAdapterBinding, JudgeConectorAdapterBindings } from '../keys';
 
 /**
@@ -15,7 +15,7 @@ import { EvaluatorAdapterBinding, JudgeConectorAdapterBindings } from '../keys';
 @lifeCycleObserver('')
 export class EvaluationReceivedObserverObserver implements LifeCycleObserver {
   @inject(JudgeConectorAdapterBindings.JUDGE_ADAPTER)
-  private judge: JudgeAdapter
+  private judge: QueueListenerAdapter
   @inject(EvaluatorAdapterBinding.EVALUATOR_ADAPTER)
   private evaluator: EvaluatorAdapter
   /*
