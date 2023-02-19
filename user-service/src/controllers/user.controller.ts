@@ -12,9 +12,10 @@ import {
   response
 } from '@loopback/rest';
 import axios from 'axios';
-import {User} from '../models';
-import {UserRepository} from '../repositories';
-import {checkHash, generateHash} from '../utils/password';
+import { Roles, Services } from '../keys';
+import { User } from '../models';
+import { UserRepository } from '../repositories';
+import { checkHash, generateHash } from '../utils/password';
 
 export class UserController {
   private problems_service_api = axios.create({
@@ -28,7 +29,7 @@ export class UserController {
   @post('/users')
   @response(200, {
     description: 'User model instance',
-    content: {'application/json': {schema: getModelSchemaRef(User)}},
+    content: { 'application/json': { schema: getModelSchemaRef(User) } },
   })
   async create(
     @requestBody({
@@ -43,17 +44,21 @@ export class UserController {
     })
     user: Omit<User, 'id'>,
   ): Promise<User> {
+    const { count } = await this.userRepository.count({ email: user.email })
+    if (count > 0) return Promise.reject(new HttpErrors.UnprocessableEntity('Email já cadastrado.'))
+
     user.password = await generateHash(user.password)
     user.email = user.email.trim();
-    const {count} = await this.userRepository.count({email: user.email})
-    if (count > 0) return Promise.reject(new HttpErrors.UnprocessableEntity('Email já cadastrado.'))
+    user.responsibilities = [{ role: Roles.STUDENT, service: Services.USER_SERVICE }, { role: Roles.STUDENT, service: Services.PROBLEM_SERVICE },
+    { role: Roles.STUDENT, service: Services.CHAT_SERVICE }, { role: Roles.STUDENT, service: Services.JUDGE_SERVICE }]
+
     return this.userRepository.create(user);
   }
 
   @get('/users/count')
   @response(200, {
     description: 'User model count',
-    content: {'application/json': {schema: CountSchema}},
+    content: { 'application/json': { schema: CountSchema } },
   })
   async count(
     @param.where(User) where?: Where<User>,
@@ -68,7 +73,7 @@ export class UserController {
       'application/json': {
         schema: {
           type: 'array',
-          items: getModelSchemaRef(User, {includeRelations: true}),
+          items: getModelSchemaRef(User, { includeRelations: true }),
         },
       },
     },
@@ -82,13 +87,13 @@ export class UserController {
   @patch('/users')
   @response(200, {
     description: 'User PATCH success count',
-    content: {'application/json': {schema: CountSchema}},
+    content: { 'application/json': { schema: CountSchema } },
   })
   async updateAll(
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(User, {partial: true}),
+          schema: getModelSchemaRef(User, { partial: true }),
         },
       },
     })
@@ -97,6 +102,10 @@ export class UserController {
   ): Promise<Count> {
     if (user.password)
       user.password = await generateHash(user.password)
+    if (user.responsibilities)
+      user.responsibilities = [{ role: Roles.STUDENT, service: Services.USER_SERVICE }, { role: Roles.STUDENT, service: Services.PROBLEM_SERVICE },
+      { role: Roles.STUDENT, service: Services.CHAT_SERVICE }, { role: Roles.STUDENT, service: Services.JUDGE_SERVICE }]
+
     return this.userRepository.updateAll(user, where);
   }
 
@@ -105,13 +114,13 @@ export class UserController {
     description: 'User model instance',
     content: {
       'application/json': {
-        schema: getModelSchemaRef(User, {includeRelations: true}),
+        schema: getModelSchemaRef(User, { includeRelations: true }),
       },
     },
   })
   async findById(
     @param.path.string('id') id: string,
-    @param.filter(User, {exclude: 'where'}) filter?: FilterExcludingWhere<User>
+    @param.filter(User, { exclude: 'where' }) filter?: FilterExcludingWhere<User>
   ): Promise<User> {
     return this.userRepository.findById(id, filter);
   }
@@ -125,7 +134,7 @@ export class UserController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(User, {partial: true}),
+          schema: getModelSchemaRef(User, { partial: true }),
         },
       },
     })
@@ -133,6 +142,9 @@ export class UserController {
   ): Promise<void> {
     if (user.password)
       user.password = await generateHash(user.password)
+    if (user.responsibilities)
+      user.responsibilities = [{ role: Roles.STUDENT, service: Services.USER_SERVICE }, { role: Roles.STUDENT, service: Services.PROBLEM_SERVICE },
+      { role: Roles.STUDENT, service: Services.CHAT_SERVICE }, { role: Roles.STUDENT, service: Services.JUDGE_SERVICE }]
     await this.userRepository.updateById(id, user);
   }
 
@@ -146,6 +158,9 @@ export class UserController {
   ): Promise<void> {
     if (user.password)
       user.password = await generateHash(user.password)
+    if (user.responsibilities)
+      user.responsibilities = [{ role: Roles.STUDENT, service: Services.USER_SERVICE }, { role: Roles.STUDENT, service: Services.PROBLEM_SERVICE },
+      { role: Roles.STUDENT, service: Services.CHAT_SERVICE }, { role: Roles.STUDENT, service: Services.JUDGE_SERVICE }]
     await this.userRepository.replaceById(id, user);
   }
 
@@ -160,7 +175,7 @@ export class UserController {
   @post('/login')
   @response(200, {
     description: 'User model instance',
-    content: {'application/json': {schema: getModelSchemaRef(User)}},
+    content: { 'application/json': { schema: getModelSchemaRef(User) } },
   })
   async checkPassword(
     @requestBody({
@@ -180,9 +195,9 @@ export class UserController {
         },
       },
     })
-    reqBody: {password: string, email: string}
+    reqBody: { password: string, email: string }
   ) {
-    const user = await this.userRepository.findOne({where: {email: reqBody.email}})
+    const user = await this.userRepository.findOne({ where: { email: reqBody.email } })
     if (!user) return Promise.reject(new HttpErrors.NotFound('Email não encontrado'))
     const result = await checkHash(reqBody.password.trim(), user.password)
     if (result) {
