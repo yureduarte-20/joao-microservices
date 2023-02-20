@@ -26,7 +26,7 @@ export class AdvisorDoubtController {
     @repository(DoubtRepository)
     public doubtRepository: DoubtRepository,
   ) { }
-
+/* 
   @post('/advisor/doubts/{doubtId}')
   @response(200, {
     description: 'Doubt model instance',
@@ -73,7 +73,7 @@ export class AdvisorDoubtController {
       response.messages = []
     response.messages.push({ ...message, createdAt: new Date().toISOString() })
     return this.doubtRepository.updateById(doubtId, response);
-  }
+  } */
 
   @post('/advisor/doubts/subscribe/{doubtId}')
   @response(200, {
@@ -108,7 +108,7 @@ export class AdvisorDoubtController {
       },
       fields: { messages: true }
     })
-    if (!response) return Promise.reject(HttpErrors.NotFound('Conversa não encontrada'));
+    if (!response) return Promise.reject(HttpErrors.NotFound('Conversa não encontrada, ou ela está sendo analisada por outro orientador'));
     response.advisorURI = `/users/${userURI}`
     response.status = DoubtStatus.ON_GOING
     return this.doubtRepository.updateById(doubtId, response);
@@ -138,10 +138,9 @@ export class AdvisorDoubtController {
     },
   })
   async findAllOpen(
-    @param.path.string('advisorId') advisorId: string,
     @param.filter(Doubt) filter?: Filter<Doubt>,
   ): Promise<Doubt[]> {
-    return this.doubtRepository.find();
+    return this.doubtRepository.find(filter);
   }
 
   @get('/advisor/doubts/{advisorId}')

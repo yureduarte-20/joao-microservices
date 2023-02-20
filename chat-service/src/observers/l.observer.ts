@@ -39,7 +39,8 @@ export class LObserver implements LifeCycleObserver {
    */
   async start(): Promise<void> {
     // Add your logic for start
-    this.queue.onReceiveNewChatRequest(async ({ problemURI, userURI }) => {
+    /* this.queue.onReceiveNewChatRequest(async ({ problemURI, userURI, problemTitle }) => {
+      console.log('Receba!')
       const { count } = await this.doubtRepository.count({
         and: [
           { problemURI },
@@ -47,8 +48,33 @@ export class LObserver implements LifeCycleObserver {
           { or: [{ status: DoubtStatus.OPEN }, { status: DoubtStatus.ON_GOING }] }
         ],
       });
-      if (count > 0) return
-      await this.doubtRepository.create({ problemURI, studentURI: userURI })
+      if (count > 0) return this.queue.sendNewChatResponse({
+        error: {
+          statusCode: 422,
+          message: `Já existe uma dúvida deste problema em aberto para este aluno.`
+        }
+      },
+        (msg) => Promise.resolve(msg))
+      await this.doubtRepository.create({ problemURI, studentURI: userURI, problemTitle })
+        .then(d => this.queue.sendNewChatResponse(d, (msg) => Promise.resolve(msg)))
+        .catch(e => this.queue.sendNewChatResponse(e, (msg) => Promise.resolve(msg)))
+    }) */
+    this.queue.sendNewChatResponse(async ({ problemId, userURI, problemTitle, ...rest }: { problemId: string, userURI: string, problemTitle: string }) => {
+     // console.log('Receba!', rest)
+      const { count } = await this.doubtRepository.count({
+        and: [
+          { problemURI: `/problems/${problemId}` },
+          { studentURI: userURI },
+          { or: [{ status: DoubtStatus.OPEN }, { status: DoubtStatus.ON_GOING }] }
+        ],
+      });
+      if (count > 0) return ({
+        error: {
+          statusCode: 422,
+          message: `Já existe uma dúvida deste problema em aberto para este aluno.`
+        }
+      })
+      return await this.doubtRepository.create({ problemURI: `/problems/${problemId}`, studentURI: userURI, problemTitle })
     })
   }
 

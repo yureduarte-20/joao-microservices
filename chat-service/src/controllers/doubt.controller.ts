@@ -1,3 +1,4 @@
+'strict'
 import {
   Count,
   CountSchema,
@@ -19,7 +20,7 @@ import {
   response,
   HttpErrors,
 } from '@loopback/rest';
-import { Doubt, IMessage } from '../models';
+import { Doubt, DoubtStatus, IMessage } from '../models';
 import { DoubtRepository } from '../repositories';
 
 export class DoubtController {
@@ -44,8 +45,9 @@ export class DoubtController {
               },
               userURI: {
                 type: 'string'
-              }
-            }
+              },
+            },
+            required: ['userURI', 'message']
           }
         },
       },
@@ -66,13 +68,44 @@ export class DoubtController {
             ]
           }
         ],
-      },
-      fields: { messages: true }
+      }
     })
     if (!response) return Promise.reject(HttpErrors.NotFound('Conversa não encontrada'));
+    if (response.status === DoubtStatus.COMPLETE) return Promise.reject(new HttpErrors.UnprocessableEntity('Conversa encerrada'))
     if (!response.messages)
       response.messages = []
     response.messages.push({ ...message, createdAt: new Date().toISOString() })
+    return this.doubtRepository.updateById(doubtId, response);
+  }
+
+  @post('/doubts/close/{doubtId}')
+  @response(200, {
+    description: 'Doubt model instance',
+    content: { 'application/json': { schema: getModelSchemaRef(Doubt) } },
+  })
+  async close(
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: {
+            properties: {
+              userURI: {
+                type: 'string'
+              },
+            },
+            required: ['userURI']
+          }
+        },
+      },
+    })
+    { userURI }: { userURI: string },
+    @param.path.string('doubtId') doubtId: string
+  ): Promise<void> {
+    let response = await this.doubtRepository.findById(doubtId)
+    if (![response.advisorURI, response.studentURI].includes(userURI)) return Promise.reject(new HttpErrors.UnprocessableEntity('Conversa não encontrada'))
+      if (response.status === DoubtStatus.COMPLETE) return Promise.reject(new HttpErrors.UnprocessableEntity('Conversa já encerrada'))
+    response.status = DoubtStatus.COMPLETE
+    response.closedAt = new Date().toISOString()
     return this.doubtRepository.updateById(doubtId, response);
   }
 
@@ -104,7 +137,7 @@ export class DoubtController {
     @param.filter(Doubt) filter?: Filter<Doubt>,
   ): Promise<Doubt[]> {
     if (filter)
-      filter.where = {...filter.where, advisorURI: undefined, studentURI: undefined };
+      filter.where = { ...filter.where, advisorURI: undefined, studentURI: undefined };
     return this.doubtRepository.find({
       ...filter, where: {
         ...filter?.where,
@@ -130,15 +163,19 @@ export class DoubtController {
     @param.filter(Doubt) filter?: Filter<Doubt>
   ): Promise<Doubt> {
     if (filter)
-      filter.where = {...filter.where, advisorURI: undefined, studentURI: undefined };
+      filter.where = { ...filter.where, advisorURI: undefined, studentURI: undefined };
     const doubt = await this.doubtRepository.findOne({
       ...filter, where: {
         ...filter?.where,
-        id: id,
-        or: [
-          { studentURI: `/users/${userId}` },
-          { studentURI: userId }
-        ]
+        and: [
+          { id },
+          {
+            or: [
+              { studentURI: `/users/${userId}` },
+              { studentURI: userId }
+            ]
+          }
+        ],
       }
     });
     if (!doubt) return Promise.reject(new HttpErrors.NotFound('Conversa não encontrada'))

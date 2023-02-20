@@ -22,6 +22,8 @@ export class Doubt extends Entity {
   @property({ type: 'string', required: true })
   problemURI: string
 
+  @property({ type: 'string', required: true })
+  problemTitle: string
   @property({
     jsonSchema: {
       properties: {
@@ -59,6 +61,9 @@ export class Doubt extends Entity {
     }
   })
   messages?: IMessage[]
+
+  @property({ type: 'date' })
+  closedAt?: string
   constructor(data?: Partial<Doubt>) {
     super(data);
   }

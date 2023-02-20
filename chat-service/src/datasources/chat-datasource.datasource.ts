@@ -4,7 +4,7 @@ import {juggler} from '@loopback/repository';
 const config = {
   name: 'ChatDatasource',
   connector: 'mongodb',
-  url: '',
+  url: process.env.MONGO_URL as string,
   host: '',
   port: 0,
   user: '',

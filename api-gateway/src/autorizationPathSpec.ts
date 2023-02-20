@@ -41,4 +41,21 @@ export const PATHS: PathSpec[] = [
         onlyOnwer:false,
         hasParamId:false
     },
+
+    {
+        allowedRoles: [Roles.ADMIN, Roles.ADVISOR],
+        pathName: /^\/advisor\/doubts\/subscribe\/[0-f]+$/,
+        method: [HTPP_METHODS.POST],
+        service: Services.CHAT_SERVICE,
+        onlyOnwer:false,
+        hasParamId:true
+    },
+    {
+        allowedRoles: [Roles.ADMIN, Roles.ADVISOR],
+        pathName: /adivisor\/doubts(\/)?.*/,
+        method: [HTPP_METHODS.GET],
+        service: Services.CHAT_SERVICE,
+        onlyOnwer:false,
+        hasParamId:false
+    },
 ]
