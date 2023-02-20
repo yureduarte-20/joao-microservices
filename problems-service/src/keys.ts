@@ -22,3 +22,6 @@ export namespace RabbitServiceBindings {
 export namespace EvaluatorAdapterBinding {
     export const EVALUATOR_ADAPTER = BindingKey.create<EvaluatorAdapter>('adapters.evaluator')
 }
+export namespace QueueListenerAdapterBindinds {
+    export const QUEUE_LISTENER_ADAPTER = BindingKey.create<QueueListenerAdapter>('adapters.queue')
+}

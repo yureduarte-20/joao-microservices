@@ -1,4 +1,4 @@
-import { inject } from '@loopback/core'
+import { generateUniqueId, inject, uuid } from '@loopback/core'
 import { repository } from '@loopback/repository';
 import { RabbitServiceBindings, SubmissionStatus } from "../keys";
 import { ITestCase, Problem, Submission } from "../models";
@@ -32,23 +32,18 @@ export default class QueueListenerAdapter {
     }
     public async onReceive(cb: (sub: ISubmissionExecutedMassage) => void) {
         this.rabbitService.consume('submission:executed', async message => {
-            console.log(message?.content.toString())
+           // console.log(message?.content.toString())
             if (message && message.content) {
                 const data: ISubmissionExecutedMassage = JSON.parse(message.content.toString())
                 cb(data)
             }
         })
     }
-    public async sendDoubt({ problemId, userURI }: { problemId: string, userURI: string }): Promise<any> {
+    public async sendDoubt({ problemId, userURI, problemTitle }: { problemId: string, userURI: string, problemTitle: string }): Promise<any> {
         return new Promise<any>((res, rej) => {
-            this.rabbitService.sendToQueue('doubt:create', { problemURI: `/problems/${problemId}`, userURI }, rej)
-            this.rabbitService.consume('doubt:created', (message) => {
-                let data = { problemId, userURI }
-                if (message) {
-                    data = JSON.parse(message.content.toString())
-                }
-                res(data)
-            }, rej)
+            //this.rabbitService.sendToQueue('doubt:create', { problemURI: `/problems/${problemId}`, userURI, problemTitle }, rej, { correlationId: generateUniqueId() })
+            console.log('enviado')
+            this.rabbitService.sendAndWait('doubt:create', { problemId, userURI, problemTitle }, res, rej)
         })
     }
 }

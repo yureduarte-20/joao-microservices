@@ -15,7 +15,7 @@ export default class EvaluatorAdapter {
     }
     private async allowedToChange(submissionId: typeof Submission.prototype.id) : Promise<boolean> {
         const submission = await this.submissionRepository.findById(submissionId, { fields: { status: true } })
-        return submission.status !== SubmissionStatus.PENDING
+        return submission.status === SubmissionStatus.PENDING
     }
     public async handleReceiveExecution(executionResult: ISubmissionExecutedMassage) {
         const resultsFails = executionResult.results.find(v => (v.error || !v.success))
@@ -55,7 +55,7 @@ export default class EvaluatorAdapter {
                 executionResult.submission.successfulRate = Number((count / executionResult.submission.results.length).toFixed(2));
             }
         }
-        console.log(executionResult.submission.results?.toString())
+        console.log(executionResult)
         return await this.submissionRepository.updateById(executionResult.submission.id, executionResult.submission)
     }
     private handleOutput({ output, testCase }: { output: string, testCase: ITestCase }) {
