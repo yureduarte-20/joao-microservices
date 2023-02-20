@@ -23,6 +23,7 @@ services:
     environment:
       - "USER_SERVICE_API_URL=http://joao-user-service:3001"
       - "PROBLEMS_SERVICE_URL=http://problems-service:3002"
+      - "CHAT_SERVICE_URL=http://chat-service:3003"
       - "API_GATEWAY_PORT=3005"
     env_file: ./api-gateway/.env
     container_name: joao-api-gateway-container
@@ -84,6 +85,24 @@ services:
     depends_on:
       rabbitmq-queue-service:
         condition: service_healthy
+    networks:
+      - joao_default
+
+  chat-service:
+    image: joao-chat-service
+    build:
+      context: ./chat-service
+      dockerfile: Dockerfile
+    environment:
+      - "RABBIT_URL=amqp://rabbitmq-queue-service:5672"
+      - "PORT=3003"
+    env_file: ./chat-service/.env
+    container_name: joao-api-chat-service
+    depends_on:
+      rabbitmq-queue-service:
+        condition: service_healthy
+    expose:
+      - "3003"
     networks:
       - joao_default
 networks:
