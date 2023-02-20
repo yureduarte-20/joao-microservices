@@ -19,7 +19,7 @@ consume('submission:execute', async (data) => {
         const json = JSON.parse(Buffer.from(data.content).toString('utf-8'))
         let basePath = __dirname + '/tmp'
         let fileName = json.submission.id + '.js'
-
+        console.log(json.submission.id)
         const executions: Promise<void>[] = []
         const testCasesOutputs: any[] = []
      //   console.log(basePath, fileName, json)
