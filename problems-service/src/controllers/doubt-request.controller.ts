@@ -33,19 +33,26 @@ export class DoubtRequestController {
               userURI: {
                 type: 'string',
                 description: 'User identification'
+              },
+              userName: {
+                type: 'string',
               }
-            }
+            },
+            required: ['userName', 'userURI']
           }
         }
       }
     })
-    data: { userURI: string },
+    data: { userURI: string, userName: string },
     @param.path.string('id') id: string
   ): Promise<any> {
     const problem = await this.problemsRepository.findById(id, { fields: { title: true } })
     try {
-      const response: any = await this.queue.sendDoubt({ userURI: data.userURI, problemId: id, problemTitle: problem.title })
-      if(response.statusCode && response.statusCode > 299){
+      const response: any = await this.queue.sendDoubt({
+        userURI: data.userURI, problemId: id,
+        problemTitle: problem.title, userName: data.userName
+      })
+      if (response.statusCode && response.statusCode > 299) {
         const statusCode = response.statusCode as number
         const error = HttpErrors()
         error.message = response.message
@@ -54,7 +61,7 @@ export class DoubtRequestController {
         error.details = response.details
         return Promise.reject(error)
       }
-      if(response.error){
+      if (response.error) {
         const statusCode = response.error.statusCode as number
         const error = HttpErrors()
         error.message = response.error.message
@@ -66,8 +73,8 @@ export class DoubtRequestController {
       console.log('Criado', response)
       return Promise.resolve(response)
     } catch (e) {
-      if(e.error){
-        if(e.error.statusCode == 422)
+      if (e.error) {
+        if (e.error.statusCode == 422)
           return Promise.reject(new HttpErrors[422](e.error.message))
       }
       return Promise.reject(new HttpErrors[422](e.message))

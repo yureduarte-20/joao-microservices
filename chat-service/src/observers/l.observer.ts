@@ -59,7 +59,7 @@ export class LObserver implements LifeCycleObserver {
         .then(d => this.queue.sendNewChatResponse(d, (msg) => Promise.resolve(msg)))
         .catch(e => this.queue.sendNewChatResponse(e, (msg) => Promise.resolve(msg)))
     }) */
-    this.queue.sendNewChatResponse(async ({ problemId, userURI, problemTitle, ...rest }: { problemId: string, userURI: string, problemTitle: string }) => {
+    this.queue.sendNewChatResponse(async ({ problemId, userURI, problemTitle, userName ,...rest }: { problemId: string, userURI: string, problemTitle: string, userName: string }) => {
      // console.log('Receba!', rest)
       const { count } = await this.doubtRepository.count({
         and: [
@@ -74,7 +74,7 @@ export class LObserver implements LifeCycleObserver {
           message: `Já existe uma dúvida deste problema em aberto para este aluno.`
         }
       })
-      return await this.doubtRepository.create({ problemURI: `/problems/${problemId}`, studentURI: userURI, problemTitle })
+      return await this.doubtRepository.create({ problemURI: `/problems/${problemId}`, studentURI: userURI, problemTitle, studentName: userName  })
     })
   }
 

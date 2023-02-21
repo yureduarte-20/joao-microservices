@@ -26,54 +26,54 @@ export class AdvisorDoubtController {
     @repository(DoubtRepository)
     public doubtRepository: DoubtRepository,
   ) { }
-/* 
-  @post('/advisor/doubts/{doubtId}')
-  @response(200, {
-    description: 'Doubt model instance',
-    content: { 'application/json': { schema: getModelSchemaRef(Doubt) } },
-  })
-  async create(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: {
-            properties: {
-              message: {
-                type: 'string',
-              },
-              userURI: {
-                type: 'string'
+  /* 
+    @post('/advisor/doubts/{doubtId}')
+    @response(200, {
+      description: 'Doubt model instance',
+      content: { 'application/json': { schema: getModelSchemaRef(Doubt) } },
+    })
+    async create(
+      @requestBody({
+        content: {
+          'application/json': {
+            schema: {
+              properties: {
+                message: {
+                  type: 'string',
+                },
+                userURI: {
+                  type: 'string'
+                }
               }
             }
-          }
+          },
         },
-      },
-    })
-    message: IMessage,
-    @param.path.string('doubtId') doubtId: string
-  ): Promise<void> {
-    let response = await this.doubtRepository.findOne({
-      where: {
-        and: [
-          { id: doubtId },
-          {
-            or: [
-              { advisorURI: message.userURI },
-              { studentURI: message.userURI },
-              { advisorURI: `/users/${message.userURI}` },
-              { studentURI: `/users/${message.userURI}` },
-            ]
-          }
-        ],
-      },
-      fields: { messages: true }
-    })
-    if (!response) return Promise.reject(HttpErrors.NotFound('Conversa não encontrada'));
-    if (!response.messages)
-      response.messages = []
-    response.messages.push({ ...message, createdAt: new Date().toISOString() })
-    return this.doubtRepository.updateById(doubtId, response);
-  } */
+      })
+      message: IMessage,
+      @param.path.string('doubtId') doubtId: string
+    ): Promise<void> {
+      let response = await this.doubtRepository.findOne({
+        where: {
+          and: [
+            { id: doubtId },
+            {
+              or: [
+                { advisorURI: message.userURI },
+                { studentURI: message.userURI },
+                { advisorURI: `/users/${message.userURI}` },
+                { studentURI: `/users/${message.userURI}` },
+              ]
+            }
+          ],
+        },
+        fields: { messages: true }
+      })
+      if (!response) return Promise.reject(HttpErrors.NotFound('Conversa não encontrada'));
+      if (!response.messages)
+        response.messages = []
+      response.messages.push({ ...message, createdAt: new Date().toISOString() })
+      return this.doubtRepository.updateById(doubtId, response);
+    } */
 
   @post('/advisor/doubts/subscribe/{doubtId}')
   @response(200, {
@@ -88,13 +88,17 @@ export class AdvisorDoubtController {
             properties: {
               userURI: {
                 type: 'string'
+              },
+              userName: {
+                type:"string"
               }
-            }
+            },
+            required:['userURI', 'userName']
           }
         },
       },
     })
-    { userURI }: { userURI:string },
+    data: { userURI: string, userName:string },
     @param.path.string('doubtId') doubtId: string
   ): Promise<void> {
     let response = await this.doubtRepository.findOne({
@@ -102,14 +106,15 @@ export class AdvisorDoubtController {
         and: [
           { id: doubtId },
           {
-           status: DoubtStatus.OPEN
+            status: DoubtStatus.OPEN
           }
         ],
-      },
-      fields: { messages: true }
+      }
     })
+    console.log(data)
     if (!response) return Promise.reject(HttpErrors.NotFound('Conversa não encontrada, ou ela está sendo analisada por outro orientador'));
-    response.advisorURI = `/users/${userURI}`
+    response.advisorURI = data.userURI.startsWith('/users/') ? data.userURI : `/users/${data.userURI}`
+    response.advisorName = data.userName
     response.status = DoubtStatus.ON_GOING
     return this.doubtRepository.updateById(doubtId, response);
   }
@@ -141,25 +146,6 @@ export class AdvisorDoubtController {
     @param.filter(Doubt) filter?: Filter<Doubt>,
   ): Promise<Doubt[]> {
     return this.doubtRepository.find(filter);
-  }
-
-  @get('/advisor/doubts/{advisorId}')
-  @response(200, {
-    description: 'Array of Doubt model instances',
-    content: {
-      'application/json': {
-        schema: {
-          type: 'array',
-          items: getModelSchemaRef(Doubt, { includeRelations: true }),
-        },
-      },
-    },
-  })
-  async find(
-    @param.path.string('advisorId') advisorId: string,
-    @param.filter(Doubt) filter?: Filter<Doubt>,
-  ): Promise<Doubt[]> {
-    return this.doubtRepository.find({ ...filter, where: { advisorURI: `/users/${advisorId}`, ...filter?.where } });
   }
 
   @get('/advisor/doubts/{id}')

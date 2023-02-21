@@ -1,7 +1,7 @@
 import httpProxy from 'express-http-proxy'
 import ServersErrors from '../handlers/ServersErrors';
 import { generateToken, extractData } from "../middlewares/AuthMiddleware";
-
+console.log(process.env.USER_SERVICE_API_URL, process.env.PROBLEMS_SERVICE_URL ,process.env.CHAT_SERVICE_URL)
 export const authServiceProxy = httpProxy(process.env.USER_SERVICE_API_URL as string, {
     userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
         let resData = Buffer.from(proxyResData).toString('utf-8')

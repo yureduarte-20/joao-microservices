@@ -16,20 +16,22 @@ import {
   del,
   requestBody,
   response,
+  HttpErrors,
 } from '@loopback/rest';
-import {User} from '../models';
-import {UserRepository} from '../repositories';
+import { User } from '../models';
+import { UserRepository } from '../repositories';
+import { generateHash } from '../utils/password';
 
 export class AdminController {
   constructor(
     @repository(UserRepository)
-    public userRepository : UserRepository,
-  ) {}
+    public userRepository: UserRepository,
+  ) { }
 
   @post('/admin/users')
   @response(200, {
     description: 'User model instance',
-    content: {'application/json': {schema: getModelSchemaRef(User)}},
+    content: { 'application/json': { schema: getModelSchemaRef(User) } },
   })
   async create(
     @requestBody({
@@ -44,13 +46,17 @@ export class AdminController {
     })
     user: Omit<User, 'id'>,
   ): Promise<User> {
+    user.email = user.email.trim().toLowerCase();
+    const { count } = await this.userRepository.count({ email: user.email.trim() })
+    if (count > 0) return Promise.reject(new HttpErrors.UnprocessableEntity('Email já cadastrado.'))
+    user.password = await generateHash(user.password)
     return this.userRepository.create(user);
   }
 
   @get('/admin/users/count')
   @response(200, {
     description: 'User model count',
-    content: {'application/json': {schema: CountSchema}},
+    content: { 'application/json': { schema: CountSchema } },
   })
   async count(
     @param.where(User) where?: Where<User>,
@@ -65,7 +71,7 @@ export class AdminController {
       'application/json': {
         schema: {
           type: 'array',
-          items: getModelSchemaRef(User, {includeRelations: true}),
+          items: getModelSchemaRef(User, { includeRelations: true }),
         },
       },
     },
@@ -79,13 +85,13 @@ export class AdminController {
   @patch('/admin/users')
   @response(200, {
     description: 'User PATCH success count',
-    content: {'application/json': {schema: CountSchema}},
+    content: { 'application/json': { schema: CountSchema } },
   })
   async updateAll(
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(User, {partial: true}),
+          schema: getModelSchemaRef(User, { partial: true }),
         },
       },
     })
@@ -100,13 +106,13 @@ export class AdminController {
     description: 'User model instance',
     content: {
       'application/json': {
-        schema: getModelSchemaRef(User, {includeRelations: true}),
+        schema: getModelSchemaRef(User, { includeRelations: true }),
       },
     },
   })
   async findById(
     @param.path.string('id') id: string,
-    @param.filter(User, {exclude: 'where'}) filter?: FilterExcludingWhere<User>
+    @param.filter(User, { exclude: 'where' }) filter?: FilterExcludingWhere<User>
   ): Promise<User> {
     return this.userRepository.findById(id, filter);
   }
@@ -120,7 +126,7 @@ export class AdminController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(User, {partial: true}),
+          schema: getModelSchemaRef(User, { partial: true }),
         },
       },
     })

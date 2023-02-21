@@ -52,7 +52,7 @@ export const PATHS: PathSpec[] = [
     },
     {
         allowedRoles: [Roles.ADMIN, Roles.ADVISOR],
-        pathName: /adivisor\/doubts(\/)?.*/,
+        pathName: /^\/advisor\/doubts\/*.*/,
         method: [HTPP_METHODS.GET],
         service: Services.CHAT_SERVICE,
         onlyOnwer:false,

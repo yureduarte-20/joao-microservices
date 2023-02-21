@@ -1,5 +1,6 @@
 import { Request } from 'express'
 import httpProxy from 'express-http-proxy'
+import proxyReqOptDecorator from '../handlers/HeadersHandler'
 import ServersErrors from '../handlers/ServersErrors'
 import { HTPP_METHODS as HTTP_METHODS, UserData } from '../types'
 
@@ -28,6 +29,6 @@ export const submissionServiceProxy = httpProxy(process.env.PROBLEMS_SERVICE_URL
         }
         return req.url
     },
-
+    proxyReqOptDecorator: proxyReqOptDecorator,
     proxyErrorHandler: ServersErrors
 })

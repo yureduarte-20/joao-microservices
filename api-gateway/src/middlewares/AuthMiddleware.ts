@@ -16,7 +16,7 @@ export const verify = (req: any, res: Response, next: NextFunction) => {
     jwt.verify(token, secret, function (err, decoded) {
         if (err)
             return res
-                .status(500)
+                .status(401)
                 .json({ auth: false, message: "Failed to authenticate token." });
 
         // se tudo estiver ok, salva no request para uso posterior

@@ -120,7 +120,7 @@ export class DoubtController {
     return this.doubtRepository.count(where);
   }
 
-  @get('/doubts/{userId}')
+  @get('/doubts/{studentId}')
   @response(200, {
     description: 'Array of Doubt model instances',
     content: {
@@ -133,7 +133,7 @@ export class DoubtController {
     },
   })
   async find(
-    @param.path.string('userId') userId: string,
+    @param.path.string('studentId') studentId: string,
     @param.filter(Doubt) filter?: Filter<Doubt>,
   ): Promise<Doubt[]> {
     if (filter)
@@ -142,8 +142,8 @@ export class DoubtController {
       ...filter, where: {
         ...filter?.where,
         or: [
-          { studentURI: `/users/${userId}` },
-          { studentURI: userId }
+          { studentURI: `/users/${studentId}` },
+          { studentURI: studentId }
         ]
       }
     });

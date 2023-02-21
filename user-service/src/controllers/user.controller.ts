@@ -44,11 +44,11 @@ export class UserController {
     })
     user: Omit<User, 'id'>,
   ): Promise<User> {
+
+    user.email = user.email.trim().toLowerCase();
     const { count } = await this.userRepository.count({ email: user.email })
     if (count > 0) return Promise.reject(new HttpErrors.UnprocessableEntity('Email já cadastrado.'))
-
     user.password = await generateHash(user.password)
-    user.email = user.email.trim();
     user.responsibilities = [{ role: Roles.STUDENT, service: Services.USER_SERVICE }, { role: Roles.STUDENT, service: Services.PROBLEM_SERVICE },
     { role: Roles.STUDENT, service: Services.CHAT_SERVICE }, { role: Roles.STUDENT, service: Services.JUDGE_SERVICE }]
 

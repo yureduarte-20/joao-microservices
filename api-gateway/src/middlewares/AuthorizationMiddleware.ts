@@ -9,6 +9,7 @@ export class AuthorizationMiddleware {
     static async handle(req: any, res: Response, next: NextFunction) {
         const _req: Request & { userData: UserData } = req as any
         for (const path of AuthorizationMiddleware.paths) {
+            //console.log(path, path.pathName.test(req.path), req.path)
             if (path.pathName.test(req.path)) {
                 if (_req.userData.responsibilities.some(resp =>
                     path.allowedRoles.includes(resp.role)
