@@ -74,7 +74,9 @@ export class DoubtController {
     if (response.status === DoubtStatus.COMPLETE) return Promise.reject(new HttpErrors.UnprocessableEntity('Conversa encerrada'))
     if (!response.messages)
       response.messages = []
-    response.messages.push({ ...message, createdAt: new Date().toISOString() })
+    let date = new Date().toISOString()
+    response.messages.push({ ...message, createdAt: date })
+    response.updatedAt = date
     return this.doubtRepository.updateById(doubtId, response);
   }
 
@@ -103,7 +105,7 @@ export class DoubtController {
   ): Promise<void> {
     let response = await this.doubtRepository.findById(doubtId)
     if (![response.advisorURI, response.studentURI].includes(userURI)) return Promise.reject(new HttpErrors.UnprocessableEntity('Conversa não encontrada'))
-      if (response.status === DoubtStatus.COMPLETE) return Promise.reject(new HttpErrors.UnprocessableEntity('Conversa já encerrada'))
+    if (response.status === DoubtStatus.COMPLETE) return Promise.reject(new HttpErrors.UnprocessableEntity('Conversa já encerrada'))
     response.status = DoubtStatus.COMPLETE
     response.closedAt = new Date().toISOString()
     return this.doubtRepository.updateById(doubtId, response);

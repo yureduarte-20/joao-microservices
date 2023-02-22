@@ -1,6 +1,6 @@
 import { Request, Router } from "express";
 import { authServiceProxy } from "../controllers/AuthProxyServer";
-import { chatAdvisorProxyServer, ChatProxyServer } from "../controllers/ChatProxyServer";
+import { chatAdminProxyServer, chatAdvisorProxyServer, ChatProxyServer } from "../controllers/ChatProxyServer";
 import { problemProxyServer } from "../controllers/ProblemProxyServer";
 import { submissionServiceProxy } from "../controllers/SubmissionProxyServer";
 import { userServiceByIdProxy, userServiceProxy } from "../controllers/UserProxyService";
@@ -20,8 +20,8 @@ router.put('/users/:userId', verify, AuthorizationMiddleware.handle, ResourceOwn
 router.delete('/users/:userId', verify, AuthorizationMiddleware.handle, ResourceOwnerMiddleware.verifyRoutesParamsId, userServiceByIdProxy)
 
 router.all(/\/admin\/users(\/)?.*/, verify, AuthorizationMiddleware.handle, userServiceProxy)
-router.post('/admin/problems', verify, AuthorizationMiddleware.handle, problemProxyServer)
-router.all('/admin/problems/*', verify, AuthorizationMiddleware.handle, problemProxyServer)
+
+router.all('/admin/problems/?*', verify, AuthorizationMiddleware.handle, problemProxyServer)
 router.get('/problems', verify, problemProxyServer)
 router.get('/problems/:id', verify, problemProxyServer)
 
@@ -29,6 +29,7 @@ router.post('/problems/:id/submissions', verify, submissionServiceProxy)
 router.get('/submissions', verify, submissionServiceProxy)
 router.get('/submissions/:id', verify, submissionServiceProxy)
 
+router.all(/^\/admin\/doubts\/*/, verify, AuthorizationMiddleware.handle, chatAdminProxyServer)
 // enviar mensagem
 router.post('/doubts/:id', verify, chatAdvisorProxyServer)
 // encerrar conversa
@@ -40,7 +41,7 @@ router.post('/problems/:id/doubt', verify, problemProxyServer)
 
 router.all("/advisor/doubts/?*", verify, AuthorizationMiddleware.handle, chatAdvisorProxyServer)
 //router.get('/doubts/:id', verify, ChatProxyServer)
-router.get(/^\/doubts(\/)?.*/, verify, ChatProxyServer)
+router.get(/\/doubts\/*/, verify, ChatProxyServer)
 router.get('/profile', verify, (req, res) => {
     const _req: { userData: UserData } & Request = req as any
     return res.json(_req.userData)

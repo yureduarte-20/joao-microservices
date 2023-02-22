@@ -25,6 +25,16 @@ export const ChatProxyServer = httpProxy(process.env.CHAT_SERVICE_URL as string,
     proxyErrorHandler: ServersErrors
 })
 
+
+export const chatAdminProxyServer = httpProxy(process.env.CHAT_SERVICE_URL as string, {
+    proxyReqBodyDecorator(bodyContent, srcReq) {
+
+        return bodyContent
+    },
+    proxyReqOptDecorator: proxyReqOptDecorator,
+    proxyErrorHandler: ServersErrors
+})
+
 export const chatAdvisorProxyServer = httpProxy(process.env.CHAT_SERVICE_URL as string, {
     proxyReqBodyDecorator(bodyContent, srcReq) {
         const _req: Request & { userData: UserData } = srcReq as any;

@@ -7,7 +7,7 @@ export async function connect() {
 async function createQueue(channel: amqplib.Channel, queue: string): Promise<amqplib.Channel> {
     return new Promise<amqplib.Channel>((resolve, reject) => {
         try {
-            channel.assertQueue(queue, { durable: true, autoDelete:true,  });
+            channel.assertQueue(queue, { durable: false  });
             resolve(channel);
         }
         catch (err) { reject(err) }

@@ -64,6 +64,9 @@ export class Doubt extends Entity {
   })
   messages?: IMessage[]
 
+  @property({ type: 'date', defaultFn: 'now' })
+  updatedAt: string;
+
   @property({ type: 'date' })
   closedAt?: string
   constructor(data?: Partial<Doubt>) {

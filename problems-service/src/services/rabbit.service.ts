@@ -21,7 +21,7 @@ export default class RabbitService {
             .then((channel: amqplib.Channel) => channel.sendToQueue(queue, Buffer.from(JSON.stringify(message)), options))
             .catch(err)
     }
-    public async consume(queue: string, callback: (msg: amqplib.ConsumeMessage | null) => void, err?: (e: Error) => void) {
+    public async consume(queue: string, callback: (msg: amqplib.ConsumeMessage | null) => Promise<void>, err?: (e: Error) => void) {
         this.connect()
             .then(channel => this.createQueue(channel, queue))
             .then(channel => channel.consume(queue, callback, { noAck: true }))

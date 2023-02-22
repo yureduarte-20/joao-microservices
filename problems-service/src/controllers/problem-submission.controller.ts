@@ -108,7 +108,7 @@ export class ProblemSubmissionController {
     const problem = await this.problemRepository.findById(id, { fields:{ testCases:true, id:true } })
     console.log(problem.testCases)
     const submissionData = await this.problemRepository.submissions(id).create(submission);
-    this.jud.sendSubmissionToEvaluate({ code: javascriptPrefix + submission.blocksXml, problem:{ testCases: problem.testCases }, submission: submissionData })
+    this.jud.sendSubmissionToEvaluate({ code: javascriptPrefix +  xmlToCode (submission.blocksXml), problem:{ testCases: problem.testCases }, submission: submissionData })
     return submissionData
   }
 }
