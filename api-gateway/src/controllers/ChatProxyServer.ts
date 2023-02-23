@@ -48,3 +48,19 @@ export const chatAdvisorProxyServer = httpProxy(process.env.CHAT_SERVICE_URL as 
     proxyReqOptDecorator: proxyReqOptDecorator,
     proxyErrorHandler: ServersErrors
 })
+
+export const chatDoubtProxyServer = httpProxy(process.env.CHAT_SERVICE_URL as string, {
+    proxyReqBodyDecorator(bodyContent, srcReq: any) {
+        if ([HTPP_METHODS.PATCH, HTPP_METHODS.PUT, HTPP_METHODS.POST].includes(srcReq.method)) {
+            let _bodyContent = srcReq.body
+            _bodyContent.userURI = '/users/' + srcReq.userData.id
+            _bodyContent.userName = srcReq.userData.name
+            console.log(_bodyContent)
+            return JSON.stringify(_bodyContent)
+        }
+        // console.log(srcReq.path)
+        return bodyContent
+    },
+    proxyReqOptDecorator: proxyReqOptDecorator,
+    proxyErrorHandler: ServersErrors
+})

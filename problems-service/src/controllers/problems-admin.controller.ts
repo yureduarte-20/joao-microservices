@@ -17,19 +17,19 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {Problem} from '../models';
-import {ProblemRepository} from '../repositories';
+import { Problem } from '../models';
+import { ProblemRepository } from '../repositories';
 
 export class ProblemsAdminController {
   constructor(
     @repository(ProblemRepository)
-    public problemRepository : ProblemRepository,
-  ) {}
+    public problemRepository: ProblemRepository,
+  ) { }
 
   @post('/admin/problems')
   @response(200, {
     description: 'Problem model instance',
-    content: {'application/json': {schema: getModelSchemaRef(Problem)}},
+    content: { 'application/json': { schema: getModelSchemaRef(Problem) } },
   })
   async create(
     @requestBody({
@@ -50,7 +50,7 @@ export class ProblemsAdminController {
   @get('/admin/problems/count')
   @response(200, {
     description: 'Problem model count',
-    content: {'application/json': {schema: CountSchema}},
+    content: { 'application/json': { schema: CountSchema } },
   })
   async count(
     @param.where(Problem) where?: Where<Problem>,
@@ -65,27 +65,28 @@ export class ProblemsAdminController {
       'application/json': {
         schema: {
           type: 'array',
-          items: getModelSchemaRef(Problem, {includeRelations: true}),
+          items: getModelSchemaRef(Problem, { includeRelations: true }),
         },
       },
     },
   })
   async find(
     @param.filter(Problem) filter?: Filter<Problem>,
-  ): Promise<Problem[]> {
-    return this.problemRepository.find(filter);
+  ): Promise<any[]> {
+    const problems = await this.problemRepository.find(filter);
+    return problems.map(item => Object.assign({},item))
   }
 
   @patch('/admin/problems')
   @response(200, {
     description: 'Problem PATCH success count',
-    content: {'application/json': {schema: CountSchema}},
+    content: { 'application/json': { schema: CountSchema } },
   })
   async updateAll(
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(Problem, {partial: true}),
+          schema: getModelSchemaRef(Problem, { partial: true }),
         },
       },
     })
@@ -100,15 +101,16 @@ export class ProblemsAdminController {
     description: 'Problem model instance',
     content: {
       'application/json': {
-        schema: getModelSchemaRef(Problem, {includeRelations: true}),
+        schema: getModelSchemaRef(Problem, { includeRelations: true }),
       },
     },
   })
   async findById(
     @param.path.string('id') id: string,
-    @param.filter(Problem, {exclude: 'where'}) filter?: FilterExcludingWhere<Problem>
-  ): Promise<Problem> {
-    return this.problemRepository.findById(id, filter);
+    @param.filter(Problem, { exclude: 'where' }) filter?: FilterExcludingWhere<Problem>
+  ): Promise<any> {
+    const problem = await this.problemRepository.findById(id, filter);
+    return Object.assign({}, problem)
   }
 
   @patch('/admin/problems/{id}')
@@ -120,7 +122,7 @@ export class ProblemsAdminController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(Problem, {partial: true}),
+          schema: getModelSchemaRef(Problem, { partial: true }),
         },
       },
     })

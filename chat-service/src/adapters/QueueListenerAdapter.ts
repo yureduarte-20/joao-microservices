@@ -21,9 +21,15 @@ export default class QueueListenerAdapter {
         })
     }
 
-    async sendNewChatResponse(callback: (data:any) => Promise<any>) {
+    async sendNewChatResponse(callback: (data: any) => Promise<any>) {
         //this.rabbitService.sendToQueue('doubt:created', doubt)
 
         this.rabbitService.consumeAndReturn('doubt:create', callback, console.error)
+    }
+    async sendProblemRequest(data: { problemId: string }) {
+        return new Promise<any>((res, rej) => {
+            this.rabbitService.sendAndWait('problem:request', data, res, rej)
+            console.log('enviado')
+        })
     }
 }

@@ -1,6 +1,6 @@
 import { Request, Router } from "express";
 import { authServiceProxy } from "../controllers/AuthProxyServer";
-import { chatAdminProxyServer, chatAdvisorProxyServer, ChatProxyServer } from "../controllers/ChatProxyServer";
+import { chatAdminProxyServer, chatAdvisorProxyServer, chatDoubtProxyServer, ChatProxyServer } from "../controllers/ChatProxyServer";
 import { problemProxyServer } from "../controllers/ProblemProxyServer";
 import { submissionServiceProxy } from "../controllers/SubmissionProxyServer";
 import { userServiceByIdProxy, userServiceProxy } from "../controllers/UserProxyService";
@@ -37,7 +37,7 @@ router.post('/doubts/close/:id', verify, ChatProxyServer)
 // se increver em uma conversa
 router.post('/advisor/doubts/subscribe/:doubtId', verify, AuthorizationMiddleware.handle, chatAdvisorProxyServer)
 //criar dúvida
-router.post('/problems/:id/doubt', verify, problemProxyServer)
+router.post('/problems/:id/doubt', verify, chatDoubtProxyServer)
 
 router.all("/advisor/doubts/?*", verify, AuthorizationMiddleware.handle, chatAdvisorProxyServer)
 //router.get('/doubts/:id', verify, ChatProxyServer)

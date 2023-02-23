@@ -44,8 +44,33 @@ export default class RabbitService {
 
                 ch.sendToQueue(queue,
                     Buffer.from(JSON.stringify(data)),
-                    { correlationId: corr, replyTo: q.queue });
+                    { correlationId: corr, replyTo: q.queue, contentType:'application/json' });
             })
+        })
+    }
+    public consumeAndReturn(queue: string,
+        callback: (d:any) => Promise<any>,
+        err?: (e: Error) => void) {
+        this.connect().then(async channel => {
+            channel.assertQueue(queue, { durable: false });
+            channel.prefetch(1);
+            channel.consume(queue, async function reply(msg) {
+                if (!msg) return
+                
+                let msgReturn = "";
+                const data = await callback(JSON.parse(msg.content.toString()))
+                let optionsPublish = {
+                    correlationId: msg.properties.correlationId
+                };
+                console.log(msg.properties)
+                channel.sendToQueue(
+                    msg.properties.replyTo,
+                    Buffer.from(JSON.stringify(data)),
+                    optionsPublish
+                );
+                channel.ack(msg);
+
+            }).catch(err);
         })
     }
 }

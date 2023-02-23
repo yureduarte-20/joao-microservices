@@ -1,3 +1,4 @@
+import { generateUniqueId } from '@loopback/core';
 import amqplib from 'amqplib'
 export default class RabbitService {
     private async connect() {
@@ -49,6 +50,27 @@ export default class RabbitService {
                 channel.ack(msg);
 
             }).catch(err);
+        })
+    }
+    public async sendAndWait(queue: string, data: any, cb: (data: any) => void, err?: (e: Error) => void) {
+        this.connect().then(ch => {
+            ch.assertQueue('', { exclusive: true }).then(q => {
+                const corr = generateUniqueId();
+
+                ch.consume(q.queue, (msg) => {
+                    console.log('consumidno')
+                    if (!msg) return err&& err(new Error('Estourou o tempo limite'))
+                    if (msg.properties.correlationId === corr) {
+                        //console.log('recebido')
+                        //console.log(` [.] Got ${msg.content.toString()}`);
+                        cb(JSON.parse(msg.content.toString()))
+                    }
+                }, { noAck: true });
+
+                ch.sendToQueue(queue,
+                    Buffer.from(JSON.stringify(data)),
+                    { correlationId: corr, replyTo: q.queue, contentType:'application/json' });
+            })
         })
     }
 }

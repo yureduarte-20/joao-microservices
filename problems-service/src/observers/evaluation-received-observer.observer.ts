@@ -37,7 +37,7 @@ export class EvaluationReceivedObserverObserver implements LifeCycleObserver {
    */
   async start(): Promise<void> {
     // Add your logic for start
-    this.judge.onReceive((sub) => this.evaluator.handleReceiveExecution(sub))
+    this.judge.onReceiveExecutedSubmission((sub) => this.evaluator.handleReceiveExecution(sub))
   }
 
   /**

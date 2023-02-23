@@ -39,7 +39,7 @@ export class Doubt extends Entity {
   @property({ type: 'string', default: null })
   advisorURI?: string;
   @property({ type: 'string' })
-  advisorName: string;
+  advisorName?: string;
   @property({ type: 'string', required: true })
   studentURI: string;
   @property({ type: 'string', required: true })

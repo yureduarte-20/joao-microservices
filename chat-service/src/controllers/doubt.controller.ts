@@ -1,4 +1,5 @@
 'strict'
+import { inject } from '@loopback/core';
 import {
   Count,
   CountSchema,
@@ -20,6 +21,8 @@ import {
   response,
   HttpErrors,
 } from '@loopback/rest';
+import QueueListenerAdapter from '../adapters/QueueListenerAdapter';
+import { QueueListenerAdapterBindings } from '../keys';
 import { Doubt, DoubtStatus, IMessage } from '../models';
 import { DoubtRepository } from '../repositories';
 
@@ -27,14 +30,86 @@ export class DoubtController {
   constructor(
     @repository(DoubtRepository)
     public doubtRepository: DoubtRepository,
+    @inject(QueueListenerAdapterBindings.QUEUE_LISTENER_ADAPTER) private queue: QueueListenerAdapter
   ) { }
+
+  @post('/problems/{id}/doubt')
+  @response(200, {
+    description: 'Doubt model instance',
+    content: { 'application/json': { schema: getModelSchemaRef(Doubt) } },
+  })
+  async create(
+    @requestBody({
+      content: {
+        'application/json': {
+          schema: {
+            properties: {
+              userURI: {
+                type: "string"
+              },
+              userName: {
+                type: 'string',
+              }
+            },
+            required: ['userName', 'userURI']
+          },
+        },
+      },
+    })
+    { userName, userURI }: { userURI: string, userName: string },
+    @param.path.string('id') problemId: string,
+  ): Promise<Doubt> {
+    const { count } = await this.doubtRepository.count({
+      and: [
+        { problemURI: `/problems/${problemId}` },
+        { studentURI: userURI },
+        { or: [{ status: DoubtStatus.OPEN }, { status: DoubtStatus.ON_GOING }] }
+      ],
+    });
+    if (count > 0) return Promise.reject(new HttpErrors.UnprocessableEntity('Já existe uma conversa em aberta para este problema'))
+    try {
+      const response = await this.queue.sendProblemRequest({ problemId })
+      if (response.statusCode && response.statusCode > 299) {
+        const statusCode = response.statusCode as number
+        const error = HttpErrors()
+        error.message = response.message
+        error.statusCode = statusCode
+        error.name = response.name
+        error.details = response.details
+        return Promise.reject(error)
+      }
+      if (response.error) {
+        const statusCode = response.error.statusCode as number
+        const error = HttpErrors()
+        error.message = response.error.message
+        error.statusCode = statusCode
+        error.name = response.error.name
+        error.details = response.error.details
+        return Promise.reject(error)
+      }
+      console.log('Criado', response)
+      return this.doubtRepository.create({
+        studentName: userName,
+        studentURI: userURI.startsWith('/users') ? userURI : `/users/${userURI}`,
+        problemURI: `/problems/${problemId}`,
+        problemTitle: response.title
+      })
+    } catch (e) {
+      if (e.error) {
+        if (e.error.statusCode == 422)
+          return Promise.reject(new HttpErrors[422](e.error.message))
+      }
+      return Promise.reject(new HttpErrors[422](e.message))
+    }
+    //return this.doubtRepository.create({});
+  }
 
   @post('/doubts/{doubtId}')
   @response(200, {
     description: 'Doubt model instance',
     content: { 'application/json': { schema: getModelSchemaRef(Doubt) } },
   })
-  async create(
+  async appendMessage(
     @requestBody({
       content: {
         'application/json': {
