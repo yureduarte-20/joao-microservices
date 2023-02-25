@@ -26,7 +26,7 @@ export class UserController {
     public userRepository: UserRepository,
   ) { }
 
-  @post('/users')
+  @post('/signup')
   @response(200, {
     description: 'User model instance',
     content: { 'application/json': { schema: getModelSchemaRef(User) } },
@@ -49,8 +49,11 @@ export class UserController {
     const { count } = await this.userRepository.count({ email: user.email })
     if (count > 0) return Promise.reject(new HttpErrors.UnprocessableEntity('Email já cadastrado.'))
     user.password = await generateHash(user.password)
-    user.responsibilities = [{ role: Roles.STUDENT, service: Services.USER_SERVICE }, { role: Roles.STUDENT, service: Services.PROBLEM_SERVICE },
-    { role: Roles.STUDENT, service: Services.CHAT_SERVICE }, { role: Roles.STUDENT, service: Services.JUDGE_SERVICE }]
+    user.responsibilities = [
+      { role: Roles.STUDENT, service: Services.USER_SERVICE },
+      { role: Roles.STUDENT, service: Services.PROBLEM_SERVICE },
+      { role: Roles.STUDENT, service: Services.CHAT_SERVICE },
+      { role: Roles.STUDENT, service: Services.JUDGE_SERVICE }]
 
     return this.userRepository.create(user);
   }
