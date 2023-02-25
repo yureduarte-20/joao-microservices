@@ -51,6 +51,11 @@ services:
       - "PORT=3001"
     env_file: ./user-service/.env
     container_name: joao-api-user-service 
+    depends_on:
+      mongodb:
+        condition: service_started
+      mongo_seed:
+        condition: service_started
     networks:
       - joao_default
     expose:
@@ -71,6 +76,10 @@ services:
         condition: service_healthy
       joao-user-service:
          condition: service_started
+      mongodb:
+        condition: service_started
+      mongo_seed:
+        condition: service_started
     networks:
       - joao_default
     expose:
@@ -88,6 +97,10 @@ services:
     depends_on:
       rabbitmq-queue-service:
         condition: service_healthy
+      mongodb:
+        condition: service_started
+      mongo_seed:
+        condition: service_started
     networks:
       - joao_default
 
@@ -104,9 +117,39 @@ services:
     depends_on:
       rabbitmq-queue-service:
         condition: service_healthy
+      mongodb:
+        condition: service_started
+      mongo_seed:
+        condition: service_started
     expose:
       - "3003"
     networks:
       - joao_default
+
+  mongodb:
+    image: mongo
+    container_name: mongo_db_joao
+      
+    volumes:
+      - ./mongo-docker/mongo-data:/data/db
+    ports:
+      - 27017:27017
+    env_file: ./mongo-docker/.env
+    networks:
+      - joao_default
+
+  mongo_seed:
+    restart: 'no'
+#
+    build:
+      context: ./mongo-docker
+    environment:
+      - MONGO_HOST=mongodb
+    depends_on:
+      - mongodb
+        
+    networks:
+      - joao_default
+    env_file: ./mongo-docker/.env
 networks:
      joao_default: {}
