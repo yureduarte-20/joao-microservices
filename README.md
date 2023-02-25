@@ -10,4 +10,5 @@ Este projeto é dedicado para o ensino a programação básica utilizando a abor
 - Docker
 
 
-![Imagem da arquitetura](https://user-images.githubusercontent.com/60445477/221367364-cb123ad3-ae8a-4fd8-a43c-fc08998a4ad0.png)
+![Arquitetura do Sistema](https://user-images.githubusercontent.com/60445477/221367746-25fda647-eae7-462f-ad27-735e0633e284.png)
+
