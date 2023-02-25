@@ -130,6 +130,7 @@ export class DoubtController {
     message: IMessage,
     @param.path.string('doubtId') doubtId: string
   ): Promise<void> {
+    console.log(message)
     let response = await this.doubtRepository.findOne({
       where: {
         and: [
