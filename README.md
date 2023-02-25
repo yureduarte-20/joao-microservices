@@ -9,5 +9,5 @@ Este projeto é dedicado para o ensino a programação básica utilizando a abor
 - MongoDB
 - Docker
 
-Imagem da arquitetura
-![image](https://user-images.githubusercontent.com/60445477/221367364-cb123ad3-ae8a-4fd8-a43c-fc08998a4ad0.png)
+
+![Imagem da arquitetura](https://user-images.githubusercontent.com/60445477/221367364-cb123ad3-ae8a-4fd8-a43c-fc08998a4ad0.png)
