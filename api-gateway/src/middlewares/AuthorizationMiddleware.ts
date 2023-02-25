@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { PATHS } from "../autorizationPathSpec";
-import { PathSpec, UserData } from "../types";
+import { PathSpec, Roles, UserData } from "../types";
 import { UserCacheAdapter } from "../utils/userCacheAdapter";
 
 export class AuthorizationMiddleware {
@@ -20,5 +20,11 @@ export class AuthorizationMiddleware {
             }
         }
         return res.status(403).json({ error: { message: 'Não autorizado' } })
+    }
+    static async onlyAdmin(req: Request, res: Response, next: NextFunction) {
+        const _req: Request & { userData: UserData } = req as any
+        if (_req.userData.responsibilities.some(res => res.role === Roles.ADMIN))
+            return next();
+        res.status(403).json({ error: { message: 'Não autorizado' } })
     }
 }

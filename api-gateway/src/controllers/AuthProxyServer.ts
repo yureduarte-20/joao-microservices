@@ -2,7 +2,7 @@ import httpProxy from 'express-http-proxy'
 import proxyReqOptDecorator from '../handlers/HeadersHandler';
 import ServersErrors from '../handlers/ServersErrors';
 import { generateToken } from "../middlewares/AuthMiddleware";
-console.log(process.env.USER_SERVICE_API_URL, process.env.PROBLEMS_SERVICE_URL ,process.env.CHAT_SERVICE_URL)
+console.log(process.env.USER_SERVICE_API_URL, process.env.PROBLEMS_SERVICE_URL, process.env.CHAT_SERVICE_URL)
 export const authServiceProxy = httpProxy(process.env.USER_SERVICE_API_URL as string, {
     userResDecorator: (proxyRes, proxyResData, userReq, userRes) => {
         let resData = Buffer.from(proxyResData).toString('utf-8')
@@ -24,6 +24,10 @@ export const authServiceProxy = httpProxy(process.env.USER_SERVICE_API_URL as st
 
         return proxyResData
     },
-    proxyReqBodyDecorator:proxyReqOptDecorator,
+    proxyReqOptDecorator: proxyReqOptDecorator,
+    proxyErrorHandler: ServersErrors
+})
+export const authSignupServiceProxy = httpProxy(process.env.USER_SERVICE_API_URL as string, {
+    proxyReqOptDecorator: proxyReqOptDecorator,
     proxyErrorHandler: ServersErrors
 })
