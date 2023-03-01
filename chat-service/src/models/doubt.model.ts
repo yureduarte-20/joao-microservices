@@ -1,5 +1,12 @@
-import { Entity, model, NullType, property } from '@loopback/repository';
+import { Entity, model, property } from '@loopback/repository';
 
+export enum DoubtsTags {
+  LOOPS = 'loops',
+  CONDITIONAL = 'condicionais',
+  VARIABLES = 'variaveis',
+  INPUT_OUTPUTS = 'entrada_saida',
+  OTHERS = 'outros'
+}
 export enum DoubtStatus {
   COMPLETE = 'COMPLETE',
   ON_GOING = 'ON_GOING',
@@ -10,6 +17,7 @@ export interface IMessage {
   userURI: string;
   createdAt: string
 }
+
 @model()
 export class Doubt extends Entity {
   @property({
@@ -26,16 +34,16 @@ export class Doubt extends Entity {
   problemTitle: string
   @property({
     jsonSchema: {
-      properties: {
-        status: {
-          enum: Object.values(DoubtStatus)
-        }
-      }
+      enum: Object.values(DoubtStatus)
     },
     default: DoubtStatus.OPEN
   })
   status: DoubtStatus
 
+  @property({
+    type: 'string', default: DoubtsTags.OTHERS.toString()
+  })
+  tag: string
   @property({ type: 'string', default: null })
   advisorURI?: string;
   @property({ type: 'string' })

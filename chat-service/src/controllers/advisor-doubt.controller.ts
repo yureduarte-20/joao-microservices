@@ -18,7 +18,8 @@ import {
   response,
   HttpErrors,
 } from '@loopback/rest';
-import { Doubt, DoubtStatus, IMessage } from '../models';
+import { Doubt,  DoubtStatus } from '../models';
+
 import { DoubtRepository } from '../repositories';
 
 export class AdvisorDoubtController {

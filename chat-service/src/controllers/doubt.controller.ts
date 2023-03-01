@@ -23,7 +23,7 @@ import {
 } from '@loopback/rest';
 import QueueListenerAdapter from '../adapters/QueueListenerAdapter';
 import { QueueListenerAdapterBindings } from '../keys';
-import { Doubt, DoubtStatus, IMessage } from '../models';
+import { Doubt, DoubtsTags, DoubtStatus, IMessage } from '../models';
 import { DoubtRepository } from '../repositories';
 
 export class DoubtController {
@@ -49,14 +49,17 @@ export class DoubtController {
               },
               userName: {
                 type: 'string',
-              }
+              },
+              tagDoubt: {
+                enum: Object.values(DoubtsTags)
+              },
             },
             required: ['userName', 'userURI']
           },
         },
       },
     })
-    { userName, userURI }: { userURI: string, userName: string },
+    { userName, userURI, tagDoubt }: { userURI: string, userName: string, tagDoubt?: string},
     @param.path.string('id') problemId: string,
   ): Promise<Doubt> {
     const { count } = await this.doubtRepository.count({
@@ -92,7 +95,8 @@ export class DoubtController {
         studentName: userName,
         studentURI: userURI.startsWith('/users') ? userURI : `/users/${userURI}`,
         problemURI: `/problems/${problemId}`,
-        problemTitle: response.title
+        problemTitle: response.title,
+        tag: tagDoubt
       })
     } catch (e) {
       if (e.error) {
