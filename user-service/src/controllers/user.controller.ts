@@ -12,11 +12,13 @@ import {
   response
 } from '@loopback/rest';
 import axios from 'axios';
-import { Roles, Services } from '../keys';
+import { Roles, Services, TokenServiceBindings, UserServiceBindings } from '../keys';
 import { User } from '../models';
 import { UserRepository } from '../repositories';
 import { checkHash, generateHash } from '../utils/password';
-
+import { inject } from '@loopback/core';
+import { JWTService } from '../services/jwt-service';
+import {MyUserService} from '../services/user-service';
 export class UserController {
   private problems_service_api = axios.create({
     baseURL: process.env.PROBLEM_SERVICE_API
@@ -24,6 +26,10 @@ export class UserController {
   constructor(
     @repository(UserRepository)
     public userRepository: UserRepository,
+    @inject(TokenServiceBindings.TOKEN_SERVICE)
+    public jwtService: JWTService,
+    @inject(UserServiceBindings.USER_SERVICE)
+    public userService: MyUserService,
   ) { }
 
   @post('/signup')
@@ -200,11 +206,11 @@ export class UserController {
     })
     reqBody: { password: string, email: string }
   ) {
-    const user = await this.userRepository.findOne({ where: { email: reqBody.email } })
-    if (!user) return Promise.reject(new HttpErrors.NotFound('Email não encontrado'))
-    const result = await checkHash(reqBody.password.trim(), user.password)
-    if (result) {
-      return Promise.resolve(user)
+    const user = await this.userService.verifyCredentials(reqBody);
+    if (user) {
+      const userProfile = this.userService.convertToUserProfile(user);
+      const token = await this.jwtService.generateToken(userProfile);
+      return Promise.resolve({ token  })
     }
     return Promise.reject(new HttpErrors.Unauthorized('Senha incorreta'))
   }

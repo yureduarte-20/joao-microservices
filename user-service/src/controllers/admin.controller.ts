@@ -21,7 +21,11 @@ import {
 import { User } from '../models';
 import { UserRepository } from '../repositories';
 import { generateHash } from '../utils/password';
-
+import { authenticate } from '@loopback/authentication';
+import { authorize } from '@loopback/authorization';
+import { Roles } from '../keys';
+@authenticate({ strategy: 'jwt' })
+@authorize({ allowedRoles: [Roles.ADMIN] })
 export class AdminController {
   constructor(
     @repository(UserRepository)
