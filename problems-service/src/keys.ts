@@ -1,7 +1,27 @@
-import { BindingKey } from "@loopback/context";
+import {TokenService, UserService} from '@loopback/authentication';
+import {BindingKey} from "@loopback/context";
+import fs from 'fs';
 import EvaluatorAdapter from "./adapters/EvaluatorAdapter";
 import QueueListenerAdapter from "./adapters/QueueListenerAdapter";
 import RabbitService from "./services/rabbit.service";
+
+export enum Roles {
+    ADMIN = 'ADMIN',
+    ADVISOR = 'ADVISOR',
+    STUDENT = 'STUDENT'
+}
+
+export enum Services {
+    USER_SERVICE = 'USER_SERVICE',
+    PROBLEM_SERVICE = 'PROBLEM_SERVICE',
+    CHAT_SERVICE = 'CHAT_SERVICE',
+    JUDGE_SERVICE = 'JUDGE_SERVICE'
+}
+
+export type Responsability = {
+    service: Services;
+    role: Roles
+}
 
 export const enum SubmissionStatus {
     ACCEPTED = 'ACCEPTED',
@@ -24,4 +44,32 @@ export namespace EvaluatorAdapterBinding {
 }
 export namespace QueueListenerAdapterBindinds {
     export const QUEUE_LISTENER_ADAPTER = BindingKey.create<QueueListenerAdapter>('adapters.queue')
+}
+
+const publicKey = fs.readFileSync(process.env.PUBLIC_KEY_PATH ?? 'problem_service_public_key.pem').toString();
+
+export type Credentials = {
+    email: string;
+    password: string;
+}
+export namespace TokenServiceConstants {
+    export const TOKEN_SECRET_VALUE = publicKey;
+    export const TOKEN_EXPIRES_IN_VALUE = '7h';
+}
+export namespace TokenServiceBindings {
+    export const TOKEN_SECRET = BindingKey.create<string>(
+        'authentication.jwt.secret',
+    );
+    export const TOKEN_EXPIRES_IN = BindingKey.create<string>(
+        'authentication.jwt.expiresIn',
+    );
+    export const TOKEN_SERVICE = BindingKey.create<TokenService>(
+        'services.jwt.service',
+    );
+}
+
+export namespace UserServiceBindings {
+    export const USER_SERVICE = BindingKey.create<UserService<Credentials, any>>(
+        'services.user.service',
+    );
 }
