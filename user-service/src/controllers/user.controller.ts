@@ -18,7 +18,9 @@ import { UserRepository } from '../repositories';
 import { checkHash, generateHash } from '../utils/password';
 import { inject } from '@loopback/core';
 import { JWTService } from '../services/jwt-service';
-import {MyUserService} from '../services/user-service';
+import { MyUserService } from '../services/user-service';
+import { authenticate, AuthenticationBindings } from '@loopback/authentication';
+import { UserProfile } from '@loopback/security'
 export class UserController {
   private problems_service_api = axios.create({
     baseURL: process.env.PROBLEM_SERVICE_API
@@ -30,6 +32,8 @@ export class UserController {
     public jwtService: JWTService,
     @inject(UserServiceBindings.USER_SERVICE)
     public userService: MyUserService,
+    @inject(AuthenticationBindings.CURRENT_USER)
+    private user: UserProfile
   ) { }
 
   @post('/signup')
@@ -210,8 +214,23 @@ export class UserController {
     if (user) {
       const userProfile = this.userService.convertToUserProfile(user);
       const token = await this.jwtService.generateToken(userProfile);
-      return Promise.resolve({ token  })
+      return Promise.resolve({ token })
     }
     return Promise.reject(new HttpErrors.Unauthorized('Senha incorreta'))
+  }
+  @authenticate({ strategy:'jwt' })
+  @get('/profile')
+  @response(200, {
+    description: 'User model instance',
+    content: {
+      'application/json': {
+        schema: getModelSchemaRef(User, { includeRelations: true }),
+      },
+    },
+  })
+  async profile(
+
+  ): Promise<UserProfile> {
+    return this.user
   }
 }
