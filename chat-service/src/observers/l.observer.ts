@@ -47,6 +47,6 @@ export class LObserver implements LifeCycleObserver {
    * This method will be invoked when the application stops.
    */
   async stop(): Promise<void> {
-    // Add your logic for stop
+    // Add your logic for stopz
   }
 }

@@ -1,19 +1,25 @@
-import {BootMixin} from '@loopback/boot';
-import {ApplicationConfig} from '@loopback/core';
+import { BootMixin } from '@loopback/boot';
+import { ApplicationConfig } from '@loopback/core';
 import {
   RestExplorerBindings,
   RestExplorerComponent,
 } from '@loopback/rest-explorer';
-import {RepositoryMixin} from '@loopback/repository';
-import {RestApplication} from '@loopback/rest';
-import {ServiceMixin} from '@loopback/service-proxy';
+import { RepositoryMixin } from '@loopback/repository';
+import { RestApplication } from '@loopback/rest';
+import { ServiceMixin } from '@loopback/service-proxy';
 import path from 'path';
-import {MySequence} from './sequence';
-import { QueueListenerAdapterBindings, RabbitServiceBindings } from './keys';
+import { MySequence } from './sequence';
+import { QueueListenerAdapterBindings, RabbitServiceBindings, TokenServiceBindings, TokenServiceConstants } from './keys';
 import RabbitService from './services/rabbit.service';
 import QueueListenerAdapter from './adapters/QueueListenerAdapter';
-
-export {ApplicationConfig};
+import { JWTService } from './services/jwt-service';
+import { AuthorizationComponent, AuthorizationDecision, AuthorizationOptions, AuthorizationTags } from '@loopback/authorization';
+import AuthorizationProvider from './providers/Authorization';
+import { SECURITY_SCHEME_SPEC } from '@loopback/authentication-jwt';
+import { AuthenticationComponent, registerAuthenticationStrategy } from '@loopback/authentication';
+import { JWTStrategy } from './authentication-strategies/jwt-strategy';
+import JWTSequence from './sequenceJwt'
+export { ApplicationConfig };
 
 export class ChatServiceApplication extends BootMixin(
   ServiceMixin(RepositoryMixin(RestApplication)),
@@ -23,7 +29,9 @@ export class ChatServiceApplication extends BootMixin(
 
     // Set up the custom sequence
     this.sequence(MySequence);
-
+    this.sequence(JWTSequence);
+    this.component(AuthenticationComponent);
+    registerAuthenticationStrategy(this, JWTStrategy)
     // Set up default home page
     this.static('/', path.join(__dirname, '../public'));
 
@@ -45,5 +53,40 @@ export class ChatServiceApplication extends BootMixin(
     };
     this.bind(RabbitServiceBindings.RABBIT_SERVICE).toClass(RabbitService)
     this.bind(QueueListenerAdapterBindings.QUEUE_LISTENER_ADAPTER).toClass(QueueListenerAdapter)
+
+    this.bind(TokenServiceBindings.TOKEN_SERVICE).toClass(JWTService);
+    this.bind(TokenServiceBindings.TOKEN_SECRET).to(TokenServiceConstants.TOKEN_SECRET_VALUE)
+    this.bind(TokenServiceBindings.TOKEN_EXPIRES_IN).to(TokenServiceConstants.TOKEN_EXPIRES_IN_VALUE);
+
+    const authorizationOptions: AuthorizationOptions = {
+      precedence: AuthorizationDecision.DENY,
+      defaultDecision: AuthorizationDecision.DENY,
+    };
+
+    const binding = this.component(AuthorizationComponent);
+    this.configure(binding.key).to(authorizationOptions);
+    this
+      .bind('authorizationProviders.my-authorizer-provider')
+      .toProvider(AuthorizationProvider)
+      .tag(AuthorizationTags.AUTHORIZER);
+    this.addSecuritySpec()
+  }
+  addSecuritySpec(): void {
+    this.api({
+      openapi: '3.0.0',
+      info: {
+        title: 'Joao Chat service',
+        version: '1.0.1',
+      },
+      paths: {},
+      components: { securitySchemes: SECURITY_SCHEME_SPEC },
+      security: [
+        {
+          // secure all endpoints with 'jwt'
+          jwt: [],
+        },
+      ],
+      servers: [{ url: '' }],
+    });
   }
 }
