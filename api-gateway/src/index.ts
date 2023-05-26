@@ -15,18 +15,18 @@ function selectProxyHost(req: Request) {
     }
 
     if (path.startsWith('/users'))
-        return process.env.USER_SERVICE_URL as string;
+        return process.env.USER_SERVICE_API_URL as string;
     else if (path.startsWith('/problems') || path.startsWith('/submissions'))
         return process.env.PROBLEMS_SERVICE_URL as string;
     else if (path.startsWith('/doubts') || path.startsWith('/doubt'))
         return process.env.CHAT_SERVICE_URL as string;
     else if (path.startsWith('/login'))
-        return process.env.USER_SERVICE_URL as string;
+        return process.env.USER_SERVICE_API_URL as string;
     else if (path.startsWith('/signup'))
-        return process.env.USER_SERVICE_URL as string;
+        return process.env.USER_SERVICE_API_URL as string;
     else if (path.startsWith('/profile'))
-        return process.env.USER_SERVICE_URL as string;
-    else return process.env.USER_SERVICE_URL as string
+        return process.env.USER_SERVICE_API_URL as string;
+    else return process.env.USER_SERVICE_API_URL as string
 }
 
 app.use(Express.json())
