@@ -55,7 +55,7 @@ export namespace QueueListenerAdapterBindinds {
     export const QUEUE_LISTENER_ADAPTER = BindingKey.create<QueueListenerAdapter>('adapters.queue')
 }
 
-const publicKey = fs.readFileSync(process.env.PUBLIC_KEY_PATH ?? 'problem_service_public_key.pem').toString();
+const publicKey = fs.readFileSync(process.env.PUBLIC_KEY_PATH ?? 'public_key.pem').toString();
 
 export type Credentials = {
     email: string;
