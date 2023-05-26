@@ -22,18 +22,22 @@ import {
   HttpErrors,
 } from '@loopback/rest';
 import QueueListenerAdapter from '../adapters/QueueListenerAdapter';
-import { QueueListenerAdapterBindings } from '../keys';
+import { CustomUserProfile, QueueListenerAdapterBindings } from '../keys';
 import { Doubt, DoubtsTags, DoubtStatus, IMessage } from '../models';
 import { DoubtRepository } from '../repositories';
-
+import { authenticate, AuthenticationBindings } from '@loopback/authentication';
+@authenticate({ strategy: 'jwt' })
 export class DoubtController {
   constructor(
     @repository(DoubtRepository)
     public doubtRepository: DoubtRepository,
-    @inject(QueueListenerAdapterBindings.QUEUE_LISTENER_ADAPTER) private queue: QueueListenerAdapter
+    @inject(QueueListenerAdapterBindings.QUEUE_LISTENER_ADAPTER)
+    private queue: QueueListenerAdapter,
+    @inject(AuthenticationBindings.CURRENT_USER)
+    private currentUser: CustomUserProfile
   ) { }
 
-  @post('/problems/{id}/doubt')
+  @post('/doubt/problem/{id}')
   @response(200, {
     description: 'Doubt model instance',
     content: { 'application/json': { schema: getModelSchemaRef(Doubt) } },
@@ -44,28 +48,21 @@ export class DoubtController {
         'application/json': {
           schema: {
             properties: {
-              userURI: {
-                type: "string"
-              },
-              userName: {
-                type: 'string',
-              },
               tagDoubt: {
                 enum: Object.values(DoubtsTags)
               },
             },
-            required: ['userName', 'userURI']
           },
         },
       },
     })
-    { userName, userURI, tagDoubt }: { userURI: string, userName: string, tagDoubt?: string},
+    { tagDoubt }: { tagDoubt?: string },
     @param.path.string('id') problemId: string,
   ): Promise<Doubt> {
     const { count } = await this.doubtRepository.count({
       and: [
         { problemURI: `/problems/${problemId}` },
-        { studentURI: userURI },
+        { studentURI: `/users/${this.currentUser.id}` },
         { or: [{ status: DoubtStatus.OPEN }, { status: DoubtStatus.ON_GOING }] }
       ],
     });
@@ -92,8 +89,8 @@ export class DoubtController {
       }
       console.log('Criado', response)
       return this.doubtRepository.create({
-        studentName: userName,
-        studentURI: userURI.startsWith('/users') ? userURI : `/users/${userURI}`,
+        studentName: this.currentUser.name,
+        studentURI: `/users/${this.currentUser.id}`,
         problemURI: `/problems/${problemId}`,
         problemTitle: response.title,
         tag: tagDoubt
@@ -122,11 +119,8 @@ export class DoubtController {
               message: {
                 type: 'string',
               },
-              userURI: {
-                type: 'string'
-              },
             },
-            required: ['userURI', 'message']
+            required: ['message']
           }
         },
       },
@@ -134,7 +128,7 @@ export class DoubtController {
     message: IMessage,
     @param.path.string('doubtId') doubtId: string
   ): Promise<void> {
-    console.log(message)
+    message.userURI = `/users/${this.currentUser.id}`
     let response = await this.doubtRepository.findOne({
       where: {
         and: [
@@ -143,8 +137,6 @@ export class DoubtController {
             or: [
               { advisorURI: message.userURI },
               { studentURI: message.userURI },
-              { advisorURI: `/users/${message.userURI}` },
-              { studentURI: `/users/${message.userURI}` },
             ]
           }
         ],
@@ -166,23 +158,9 @@ export class DoubtController {
     content: { 'application/json': { schema: getModelSchemaRef(Doubt) } },
   })
   async close(
-    @requestBody({
-      content: {
-        'application/json': {
-          schema: {
-            properties: {
-              userURI: {
-                type: 'string'
-              },
-            },
-            required: ['userURI']
-          }
-        },
-      },
-    })
-    { userURI }: { userURI: string },
     @param.path.string('doubtId') doubtId: string
   ): Promise<void> {
+    const userURI = `/users/${this.currentUser.id}`
     let response = await this.doubtRepository.findById(doubtId)
     if (![response.advisorURI, response.studentURI].includes(userURI)) return Promise.reject(new HttpErrors.UnprocessableEntity('Conversa não encontrada'))
     if (response.status === DoubtStatus.COMPLETE) return Promise.reject(new HttpErrors.UnprocessableEntity('Conversa já encerrada'))
@@ -202,7 +180,7 @@ export class DoubtController {
     return this.doubtRepository.count(where);
   }
 
-  @get('/doubts/{studentId}')
+  @get('/doubts')
   @response(200, {
     description: 'Array of Doubt model instances',
     content: {
@@ -215,22 +193,20 @@ export class DoubtController {
     },
   })
   async find(
-    @param.path.string('studentId') studentId: string,
+
     @param.filter(Doubt) filter?: Filter<Doubt>,
   ): Promise<Doubt[]> {
+    const studentId = this.currentUser.id
     if (filter)
       filter.where = { ...filter.where, advisorURI: undefined, studentURI: undefined };
     return this.doubtRepository.find({
       ...filter, where: {
         ...filter?.where,
-        or: [
-          { studentURI: `/users/${studentId}` },
-          { studentURI: studentId }
-        ]
+        studentURI: `/users/${studentId}`
       }
     });
   }
-  @get('/doubts/{id}/{userId}')
+  @get('/doubts/{id}')
   @response(200, {
     description: 'Doubt model instance',
     content: {
@@ -241,9 +217,9 @@ export class DoubtController {
   })
   async findById(
     @param.path.string('id') id: string,
-    @param.path.string('userId') userId: string,
     @param.filter(Doubt) filter?: Filter<Doubt>
   ): Promise<Doubt> {
+    const userId = this.currentUser.id
     if (filter)
       filter.where = { ...filter.where, advisorURI: undefined, studentURI: undefined };
     const doubt = await this.doubtRepository.findOne({

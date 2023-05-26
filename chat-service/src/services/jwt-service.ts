@@ -59,7 +59,7 @@ export class JWTService {
         id: decryptedToken.id,
         name: decryptedToken.name,
         email: decryptedToken.email,
-        roles: decryptedToken.responsibilities.filter((item: Responsability) => item.role && item.service == Services.PROBLEM_SERVICE),
+        roles: decryptedToken.responsibilities.filter((item: Responsability) => item.role && item.service == Services.CHAT_SERVICE),
         responsibilities: decryptedToken.responsibilities
       }
 

@@ -4,6 +4,7 @@ import RabbitService from "./services/rabbit.service";
 import { TokenService, UserService } from "@loopback/authentication";
 import * as fs from 'fs';
 
+import {securityId} from '@loopback/security';
 export enum Roles {
     ADMIN = 'ADMIN',
     ADVISOR = 'ADVISOR',
@@ -28,6 +29,14 @@ export namespace RabbitServiceBindings {
 export namespace QueueListenerAdapterBindings {
     export const QUEUE_LISTENER_ADAPTER = BindingKey.create<QueueListenerAdapter>('adapters.queue.listener')
 }
+export type CustomUserProfile = {
+    [securityId]: string,
+    id: string,
+    name: string,
+    email: string,
+    roles: Responsability[],
+    responsibilities: Responsability[]
+  }
 const publicKey = fs.readFileSync(process.env.PUBLIC_KEY_PATH ?? 'public_key.pem').toString();
 
 export type Credentials = {
