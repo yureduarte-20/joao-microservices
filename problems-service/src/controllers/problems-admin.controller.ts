@@ -1,5 +1,5 @@
-import {authenticate} from '@loopback/authentication';
-import {authorize} from '@loopback/authorization';
+import { authenticate, AuthenticationBindings } from '@loopback/authentication';
+import { authorize } from '@loopback/authorization';
 import {
   Count,
   CountSchema,
@@ -19,22 +19,26 @@ import {
   requestBody,
   response,
 } from '@loopback/rest';
-import {Roles} from '../keys';
-import {Problem} from '../models';
-import {ProblemRepository} from '../repositories';
+import { CustomUserProfile, Roles } from '../keys';
+import { Problem } from '../models';
+import { ProblemRepository } from '../repositories';
+import { inject } from '@loopback/core';
 
-@authenticate({strategy: 'jwt'})
-@authorize({allowedRoles: [Roles.ADMIN]})
+
+@authenticate({ strategy: 'jwt' })
+@authorize({ allowedRoles: [Roles.ADMIN] })
 export class ProblemsAdminController {
   constructor(
     @repository(ProblemRepository)
     public problemRepository: ProblemRepository,
+    @inject(AuthenticationBindings.CURRENT_USER)
+    private currentUser: CustomUserProfile
   ) { }
 
   @post('/admin/problems')
   @response(200, {
     description: 'Problem model instance',
-    content: {'application/json': {schema: getModelSchemaRef(Problem)}},
+    content: { 'application/json': { schema: getModelSchemaRef(Problem) } },
   })
   async create(
     @requestBody({
@@ -42,20 +46,20 @@ export class ProblemsAdminController {
         'application/json': {
           schema: getModelSchemaRef(Problem, {
             title: 'NewProblem',
-            exclude: ['id'],
+            exclude: ['id', 'createdByURI'],
           }),
         },
       },
     })
     problem: Omit<Problem, 'id'>,
   ): Promise<Problem> {
-    return this.problemRepository.create(problem);
+    return this.problemRepository.create({ ...problem, createdByURI: `/users/${this.currentUser.id}` });
   }
 
   @get('/admin/problems/count')
   @response(200, {
     description: 'Problem model count',
-    content: {'application/json': {schema: CountSchema}},
+    content: { 'application/json': { schema: CountSchema } },
   })
   async count(
     @param.where(Problem) where?: Where<Problem>,
@@ -70,7 +74,7 @@ export class ProblemsAdminController {
       'application/json': {
         schema: {
           type: 'array',
-          items: getModelSchemaRef(Problem, {includeRelations: true}),
+          items: getModelSchemaRef(Problem, { includeRelations: true }),
         },
       },
     },
@@ -85,13 +89,13 @@ export class ProblemsAdminController {
   @patch('/admin/problems')
   @response(200, {
     description: 'Problem PATCH success count',
-    content: {'application/json': {schema: CountSchema}},
+    content: { 'application/json': { schema: CountSchema } },
   })
   async updateAll(
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(Problem, {partial: true}),
+          schema: getModelSchemaRef(Problem, { partial: true }),
         },
       },
     })
@@ -106,13 +110,13 @@ export class ProblemsAdminController {
     description: 'Problem model instance',
     content: {
       'application/json': {
-        schema: getModelSchemaRef(Problem, {includeRelations: true}),
+        schema: getModelSchemaRef(Problem, { includeRelations: true }),
       },
     },
   })
   async findById(
     @param.path.string('id') id: string,
-    @param.filter(Problem, {exclude: 'where'}) filter?: FilterExcludingWhere<Problem>
+    @param.filter(Problem, { exclude: 'where' }) filter?: FilterExcludingWhere<Problem>
   ): Promise<any> {
     const problem = await this.problemRepository.findById(id, filter);
     return Object.assign({}, problem)
@@ -127,7 +131,7 @@ export class ProblemsAdminController {
     @requestBody({
       content: {
         'application/json': {
-          schema: getModelSchemaRef(Problem, {partial: true}),
+          schema: getModelSchemaRef(Problem, { partial: true }),
         },
       },
     })

@@ -63,6 +63,7 @@ export default class RabbitService {
                     correlationId: msg.properties.correlationId
                 };
                 console.log(msg.properties)
+                console.log(msg.content)
                 channel.sendToQueue(
                     msg.properties.replyTo,
                     Buffer.from(JSON.stringify(data)),

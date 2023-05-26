@@ -19,12 +19,13 @@ import {
   HttpErrors,
 
 } from '@loopback/rest';
-import { AxiosError } from 'axios';
+
 
 import { Problem } from '../models';
 import { ProblemRepository } from '../repositories';
-import submission_api from '../utils/submission-api'
+import { authenticate } from '@loopback/authentication';
 
+@authenticate({ strategy: 'jwt' })
 export class ProblemsControllerController {
   constructor(
     @repository(ProblemRepository)

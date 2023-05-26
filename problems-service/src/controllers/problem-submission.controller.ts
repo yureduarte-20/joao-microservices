@@ -18,7 +18,7 @@ import {
   requestBody,
 } from '@loopback/rest';
 import QueueListenerAdapter from '../adapters/QueueListenerAdapter';
-import { JudgeConectorAdapterBindings, SubmissionStatus } from '../keys';
+import { CustomUserProfile, JudgeConectorAdapterBindings, SubmissionStatus } from '../keys';
 import {
   Problem,
   Submission,
@@ -26,16 +26,20 @@ import {
 import { ProblemRepository, SubmissionRepository } from '../repositories';
 import { javascriptPrefix } from '../utils/javascriptScript';
 import xmlToCode from '../utils/xmlToCode';
+import { authenticate, AuthenticationBindings } from '@loopback/authentication';
 
+@authenticate({ strategy: 'jwt' })
 export class ProblemSubmissionController {
   @inject(JudgeConectorAdapterBindings.JUDGE_ADAPTER)
   private jud: QueueListenerAdapter
   constructor(
     @repository(ProblemRepository) protected problemRepository: ProblemRepository,
     @repository(SubmissionRepository) protected submissionRepository: SubmissionRepository,
+    @inject(AuthenticationBindings.CURRENT_USER)
+    private currentUser: CustomUserProfile
   ) { }
 
-  @get('/submissions/{id}/{userId}', {
+  @get('/submissions/{id}', {
     responses: {
       '200': {
         description: 'Array of Problem has many Submission',
@@ -48,10 +52,10 @@ export class ProblemSubmissionController {
     },
   })
   async findById(
-    @param.path.string('userId') userId: string,
     @param.path.string('id') id: string,
     @param.query.object('filter') filter?: Filter<Submission>,
   ): Promise<Submission | typeof HttpErrors.NotFound> {
+    const userId = this.currentUser.id
     const sub = await this.submissionRepository.findOne({
       ...filter,
       where: {
@@ -63,7 +67,7 @@ export class ProblemSubmissionController {
     return sub
   }
 
-  @get('/submissions/{userId}', {
+  @get('/submissions', {
     responses: {
       '200': {
         description: 'Array of Problem has many Submission',
@@ -76,9 +80,9 @@ export class ProblemSubmissionController {
     },
   })
   async find(
-    @param.path.string('userId') userId: string,
     @param.query.object('filter') filter?: Filter<Submission>,
   ): Promise<Submission[]> {
+    const userId = this.currentUser.id
     return this.submissionRepository.find({ ...filter, where: { ...filter?.where, or: [{ userURI: userId }, { userURI: `/users/${userId}` }] } })
   }
 
@@ -97,18 +101,19 @@ export class ProblemSubmissionController {
         'application/json': {
           schema: getModelSchemaRef(Submission, {
             title: 'NewSubmissionInProblem',
-            exclude: ['id'],
+            exclude: ['id', 'userURI'],
             optional: ['problemId']
           }),
         },
       },
     }) submission: Omit<Submission, 'id'>,
   ): Promise<Submission> {
+    submission.userURI = `/users/${this.currentUser.id}`
     submission.status = SubmissionStatus.PENDING
-    const problem = await this.problemRepository.findById(id, { fields:{ testCases:true, id:true } })
+    const problem = await this.problemRepository.findById(id, { fields: { testCases: true, id: true } })
     console.log(problem.testCases)
     const submissionData = await this.problemRepository.submissions(id).create(submission);
-    this.jud.sendSubmissionToEvaluate({ code: javascriptPrefix +  xmlToCode (submission.blocksXml), problem:{ testCases: problem.testCases }, submission: submissionData })
+    this.jud.sendSubmissionToEvaluate({ code: javascriptPrefix + xmlToCode(submission.blocksXml), problem: { testCases: problem.testCases }, submission: submissionData })
     return submissionData
   }
 }

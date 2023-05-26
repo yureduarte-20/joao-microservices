@@ -19,7 +19,11 @@ import {
 } from '@loopback/rest';
 import { Problem } from '../models';
 import { ProblemRepository } from '../repositories';
-
+import { authenticate } from '@loopback/authentication';
+import { authorize } from '@loopback/authorization';
+import { Roles } from '../keys';
+@authenticate({ strategy:'jwt' })
+@authorize({ allowedRoles:[Roles.ADMIN, Roles.ADVISOR] })
 export class AdvisorProblemsController {
   constructor(
     @repository(ProblemRepository)

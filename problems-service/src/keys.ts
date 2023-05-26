@@ -1,6 +1,8 @@
 import {TokenService, UserService} from '@loopback/authentication';
 import {BindingKey} from "@loopback/context";
 import fs from 'fs';
+
+import {securityId} from '@loopback/security';
 import EvaluatorAdapter from "./adapters/EvaluatorAdapter";
 import QueueListenerAdapter from "./adapters/QueueListenerAdapter";
 import RabbitService from "./services/rabbit.service";
@@ -17,7 +19,14 @@ export enum Services {
     CHAT_SERVICE = 'CHAT_SERVICE',
     JUDGE_SERVICE = 'JUDGE_SERVICE'
 }
-
+export type CustomUserProfile = {
+    [securityId]: string,
+    id: string,
+    name: string,
+    email: string,
+    roles: Responsability[],
+    responsibilities: Responsability[]
+  }
 export type Responsability = {
     service: Services;
     role: Roles

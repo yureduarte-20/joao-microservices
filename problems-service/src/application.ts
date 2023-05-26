@@ -49,7 +49,7 @@ export class ProblemsServiceApplication extends BootMixin(
     this.bind(TokenServiceBindings.TOKEN_SERVICE).toClass(JWTService);
     this.bind(TokenServiceBindings.TOKEN_SECRET).to(TokenServiceConstants.TOKEN_SECRET_VALUE)
     this.bind(TokenServiceBindings.TOKEN_EXPIRES_IN).to(TokenServiceConstants.TOKEN_EXPIRES_IN_VALUE);
-  
+
     this.bind(JudgeConnectorAdapterBindings.JUDGE_ADAPTER).toClass(QueueListenerAdapter)
     this.bind(RabbitServiceBindings.RABBIT_SERVICE).toClass(RabbitService)
     this.bind(EvaluatorAdapterBinding.EVALUATOR_ADAPTER).toClass(EvaluatorAdapter)
